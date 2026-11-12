@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bicos</title>
+<style>
+  :root { --fundo:#f3f4f6; --cartao:#fff; --texto:#1d2330; --suave:#667085; --borda:#e3e6eb; --realce:#f0f9fb;
+          --prim:#0e7490; --prim-claro:#e0f2f7; --ok:#047857; --ruim:#be123c; --amb:#b45309; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fundo:#0f1318; --cartao:#181e26; --texto:#e6e9ef; --suave:#98a2b3; --borda:#28313c; --realce:#13252b;
+            --prim:#22a3c2; --prim-claro:#173540; --ok:#34d399; --ruim:#fb7185; --amb:#fbbf24; }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--fundo); color:var(--texto); }
+  input, select, textarea, button { font:inherit; color:inherit; background:var(--cartao);
+           border:1px solid var(--borda); border-radius:8px; padding:7px 10px; }
+  button { cursor:pointer; }
+  button:disabled { opacity:.5; cursor:default; }
+  .prim { background:var(--prim); color:#fff; border-color:var(--prim); font-weight:600; }
+
+  /* topo */
+  header { position:sticky; top:0; z-index:5; background:var(--cartao); border-bottom:1px solid var(--borda); }
+  .barra { max-width:1280px; margin:0 auto; padding:10px 16px; display:flex; gap:10px; align-items:center; }
+  .marca { font-weight:750; font-size:18px; white-space:nowrap; }
+  #busca { flex:1; min-width:0; }
+  #btnFiltros { display:none; }
+  .abas { max-width:1280px; margin:0 auto; padding:0 16px; display:flex; gap:4px; overflow-x:auto; }
+  .aba { border:0; border-bottom:2px solid transparent; border-radius:0; background:none; padding:8px 12px; color:var(--suave); white-space:nowrap; }
+  .aba.on { color:var(--prim); border-bottom-color:var(--prim); font-weight:600; }
+  .aba .n { font-size:12px; background:var(--fundo); border-radius:99px; padding:0 7px; margin-left:4px; }
+
+  /* corpo */
+  .corpo { max-width:1280px; margin:0 auto; padding:16px; display:grid; grid-template-columns:260px 1fr; gap:16px; align-items:start; }
+  aside { position:sticky; top:110px; background:var(--cartao); border:1px solid var(--borda); border-radius:12px; padding:14px;
+          max-height:calc(100vh - 126px); overflow:auto; }
+  .grupo { padding:10px 0; border-bottom:1px solid var(--borda); }
+  .grupo:first-child { padding-top:0; }
+  .grupo:last-child { border-bottom:0; }
+  .grupo h3 { margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--suave); }
+  .opc { display:flex; align-items:center; gap:8px; padding:3px 0; cursor:pointer; }
+  .opc .n { margin-left:auto; color:var(--suave); font-size:12px; }
+  .segm { display:flex; flex-wrap:wrap; gap:4px; }
+  .segm button { padding:4px 9px; font-size:13px; border-radius:99px; }
+  .segm button.on, .chip.on { background:var(--prim); color:#fff; border-color:var(--prim); }
+  .chips { display:flex; flex-wrap:wrap; gap:5px; }
+  .chip { font-size:12px; padding:2px 9px; border-radius:99px; border:1px solid var(--borda); background:var(--cartao); }
+  .chip .n { opacity:.7; margin-left:3px; }
+  aside input[type=number] { width:100%; }
+  .limpar { width:100%; margin-top:10px; }
+
+  .topolista { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+  #contagem { color:var(--suave); }
+  #estado { color:var(--suave); font-size:12px; max-width:1280px; margin:0 auto; padding:0 16px 6px; }
+
+  /* cartões */
+  .cartao { background:var(--cartao); border:1px solid var(--borda); border-radius:12px; padding:14px 16px; margin-bottom:10px;
+            display:grid; grid-template-columns:1fr 190px; gap:16px; }
+  .cartao.INTERESSA { border-left:4px solid var(--amb); }
+  .cartao.CANDIDATEI { border-left:4px solid var(--ok); }
+  .cartao.DESCARTADO { opacity:.55; }
+  .titulo { font-weight:650; font-size:15.5px; color:var(--texto); text-decoration:none; }
+  .titulo:hover { color:var(--prim); }
+  .meta { color:var(--suave); font-size:12.5px; margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 10px; }
+  .fonte { font-weight:700; color:var(--prim); }
+  ul { margin:8px 0 0; padding-left:18px; }
+  li { margin:2px 0; }
+  .mais { background:none; border:0; padding:4px 0 0; color:var(--prim); font-size:13px; }
+  .completo { white-space:pre-line; margin-top:8px; padding:10px; background:var(--realce); border-radius:8px; font-size:13px; max-height:320px; overflow:auto; }
+  .tags { margin-top:9px; display:flex; gap:5px; flex-wrap:wrap; }
+  .tags .chip { cursor:pointer; }
+  .lado { border-left:1px solid var(--borda); padding-left:16px; display:flex; flex-direction:column; gap:9px; }
+  .num span { display:block; color:var(--suave); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  .num b { font-size:15px; }
+  .num small { display:block; color:var(--suave); }
+  .alto { color:var(--amb); }
+  .acoes { display:flex; gap:5px; flex-wrap:wrap; margin-top:auto; }
+  .acoes button { font-size:12.5px; padding:4px 9px; }
+  .acoes button.on { background:var(--prim-claro); border-color:var(--prim); color:var(--prim); font-weight:600; }
+
+  details.add { background:var(--cartao); border:1px dashed var(--borda); border-radius:12px; padding:10px 14px; margin-bottom:12px; }
+  details.add summary { cursor:pointer; font-weight:600; color:var(--prim); }
+  .linha { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+  .linha > * { flex:1; min-width:160px; }
+  textarea { width:100%; min-height:100px; margin-top:8px; }
+  .vazio { text-align:center; color:var(--suave); padding:50px 0; }
+
+  @media (max-width: 860px) {
+    .corpo { grid-template-columns:1fr; }
+    #btnFiltros { display:inline-block; }
+    aside { display:none; position:static; max-height:none; }
+    aside.aberto { display:block; }
+    .cartao { grid-template-columns:1fr; }
+    .lado { border-left:0; padding-left:0; border-top:1px solid var(--borda); padding-top:10px;
+            flex-direction:row; flex-wrap:wrap; gap:14px; }
+    .acoes { width:100%; }
+    .marca span { display:none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="barra">
+    <div class="marca">🔎 <span>Bicos</span></div>
+    <input id="busca" placeholder="Buscar no título e na descrição (ex.: python automação)…">
+    <button id="btnFiltros">Filtros</button>
+    <button class="prim" id="btnColetar">Buscar agora</button>
+  </div>
+  <div class="abas" id="abas"></div>
+  <div id="estado"></div>
+</header>
+
+<div class="corpo">
+  <aside id="filtros">
+    <div class="grupo">
+      <h3>Site</h3>
+      <div id="fFonte"></div>
+    </div>
+    <div class="grupo">
+      <h3>Publicado</h3>
+      <div class="segm" data-f="dias">
+        <button data-v="0">Qualquer</button><button data-v="1">24 h</button>
+        <button data-v="3">3 dias</button><button data-v="7">7 dias</button>
+      </div>
+    </div>
+    <div class="grupo">
+      <h3>Valor mínimo (R$)</h3>
+      <input type="number" id="fValor" min="0" step="50" placeholder="ex.: 500">
+      <label class="opc" style="margin-top:6px"><input type="checkbox" id="fComValor"> Só com valor informado</label>
+    </div>
+    <div class="grupo">
+      <h3>Tempo estimado</h3>
+      <div class="segm" data-f="horas">
+        <button data-v="0">Qualquer</button><button data-v="8">até 8 h</button>
+        <button data-v="20">até 20 h</button><button data-v="40">até 40 h</button><button data-v="80">até 80 h</button>
+      </div>
+    </div>
+    <div class="grupo">
+      <h3>Concorrência</h3>
+      <div class="segm" data-f="propostas">
+        <button data-v="0">Qualquer</button><button data-v="10">≤ 10 propostas</button>
+        <button data-v="30">≤ 30</button><button data-v="60">≤ 60</button>
+      </div>
+    </div>
+    <div class="grupo">
+      <h3>Tecnologias</h3>
+      <div class="chips" id="fTec"></div>
+    </div>
+    <button class="limpar" id="btnLimpar">Limpar filtros</button>
+  </aside>
+
+  <main>
+    <details class="add">
+      <summary>+ Adicionar projeto de outro site (link ou texto)</summary>
+      <div class="linha">
+        <input id="url" placeholder="Cole o link do projeto">
+        <button id="btnLink" style="flex:0">Ler link</button>
+      </div>
+      <div class="linha">
+        <input id="tTitulo" placeholder="Título (opcional)">
+        <input id="tOrc" placeholder="Valor (ex.: R$ 500 - R$ 1.000)">
+      </div>
+      <textarea id="tTexto" placeholder="Se o site bloquear a leitura automática, cole aqui o texto do projeto…"></textarea>
+      <div class="linha"><button id="btnTexto" style="flex:0">Resumir texto</button><span id="msgAdd" class="meta"></span></div>
+    </details>
+    <div class="topolista">
+      <span id="contagem"></span>
+      <select id="ordem">
+        <option value="data">Mais recentes</option>
+        <option value="valor">Maior valor</option>
+        <option value="valorhora">Melhor R$/hora</option>
+        <option value="horas">Mais rápidos</option>
+        <option value="propostas">Menos concorridos</option>
+      </select>
+    </div>
+    <div id="lista"></div>
+  </main>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const COTACAO_USD = 5.5;   // só para comparar valores (o Workana vem em dólar)
+const ABAS = [["ATIVOS","Para ver"],["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartados"],["","Todos"]];
+const ACOES = [["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartar"],["NOVO","↺ Voltar"]];
+const PADRAO = {aba:"ATIVOS", busca:"", fontes:[], dias:0, valor:"", comValor:false, horas:0, propostas:0, tecs:[], ordem:"data"};
+let dados = [], abertos = new Set();
+let f = (() => { try { return {...PADRAO, ...JSON.parse(localStorage.getItem("bicos_filtros") || "{}")}; } catch { return {...PADRAO}; } })();
+const salvar = () => { try { localStorage.setItem("bicos_filtros", JSON.stringify(f)); } catch {} };
+
+const din = (v, m) => v == null ? null : v.toLocaleString("pt-BR", {style:"currency", currency:m || "BRL", maximumFractionDigits:0});
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const reais = (p) => p.valor_max == null ? null : p.valor_max * (p.moeda === "USD" ? COTACAO_USD : 1);
+const tecs = (p) => p.tecnologias ? p.tecnologias.split(", ") : [];
+const idadeH = (p) => p.publicado_em ? (Date.now() - new Date(p.publicado_em)) / 3600000 : 1e9;
+
+function valor(p) {
+  if (p.valor_max == null) return [p.orcamento && p.orcamento.startsWith("A combinar") ? "A combinar" : (p.orcamento || "—"), ""];
+  const m = p.moeda || "BRL";
+  const txt = !p.valor_min ? `até ${din(p.valor_max, m)}` : p.valor_max !== p.valor_min
+    ? `${din(p.valor_min, m)} – ${din(p.valor_max, m)}` : din(p.valor_min, m);
+  return [txt, m === "USD" ? `≈ ${din(reais(p))}` : ""];
+}
+function tempo(p) {
+  const dias = Math.max(1, Math.round(p.horas_max / 6));
+  return [`${p.horas_min}–${p.horas_max} h`, p.horas_max > 8 ? `~${dias} dia${dias > 1 ? "s" : ""} de trabalho` : "uma tarde"];
+}
+function quando(p) {
+  const h = idadeH(p);
+  if (h > 1e8) return "";
+  if (h < 1) return `há ${Math.max(1, Math.round(h * 60))} min`;
+  if (h < 24) return `há ${Math.round(h)} h`;
+  return `há ${Math.round(h / 24)} d`;
+}
+
+// filtros que não são a aba (as contagens das abas usam todos os outros)
+function passa(p, ignorar) {
+  if (ignorar !== "fonte" && f.fontes.length && !f.fontes.includes(p.fonte)) return false;
+  if (f.dias && idadeH(p) > f.dias * 24) return false;
+  if (f.comValor && p.valor_max == null) return false;
+  if (f.valor && (reais(p) ?? Infinity) < Number(f.valor)) return false;
+  if (f.horas && p.horas_min > f.horas) return false;
+  if (f.propostas && (p.propostas ?? 0) > f.propostas) return false;
+  if (ignorar !== "tec" && f.tecs.length && !tecs(p).some(t => f.tecs.includes(t))) return false;
+  if (f.busca) {
+    const alvo = `${p.titulo} ${p.descricao} ${p.tecnologias}`.toLowerCase();
+    if (!f.busca.toLowerCase().split(/\s+/).every(t => alvo.includes(t))) return false;
+  }
+  return true;
+}
+const naAba = (p, aba) => aba === "ATIVOS" ? ["NOVO","INTERESSA"].includes(p.status) : !aba || p.status === aba;
+
+function contar(lista, chave) {
+  const c = {};
+  lista.forEach(p => (chave(p) || []).forEach(v => c[v] = (c[v] || 0) + 1));
+  return Object.entries(c).sort((a, b) => b[1] - a[1]);
+}
+
+function desenharFiltros() {
+  const base = dados.filter(p => naAba(p, f.aba));
+  $("fFonte").innerHTML = contar(base.filter(p => passa(p, "fonte")), p => [p.fonte]).map(([v, n]) =>
+    `<label class="opc"><input type="checkbox" value="${esc(v)}" ${f.fontes.includes(v) ? "checked" : ""}> ${esc(v)}<span class="n">${n}</span></label>`).join("")
+    || `<span class="meta">—</span>`;
+  const tec = contar(base.filter(p => passa(p, "tec")), tecs).slice(0, 24);
+  f.tecs.filter(t => !tec.some(([v]) => v === t)).forEach(t => tec.push([t, 0]));
+  $("fTec").innerHTML = tec.map(([v, n]) =>
+    `<button class="chip ${f.tecs.includes(v) ? "on" : ""}" data-tec="${esc(v)}">${esc(v)}<span class="n">${n}</span></button>`).join("")
+    || `<span class="meta">Nenhuma detectada</span>`;
+  document.querySelectorAll(".segm").forEach(s => s.querySelectorAll("button").forEach(b =>
+    b.classList.toggle("on", Number(b.dataset.v) === Number(f[s.dataset.f]))));
+  $("fValor").value = f.valor; $("fComValor").checked = f.comValor;
+  $("busca").value = f.busca; $("ordem").value = f.ordem;
+  $("abas").innerHTML = ABAS.map(([v, r]) => `<button class="aba ${f.aba === v ? "on" : ""}" data-aba="${v}">${r}<span class="n">${
+    dados.filter(p => naAba(p, v) && passa(p)).length}</span></button>`).join("");
+}
+
+function desenharLista() {
+  let l = dados.filter(p => naAba(p, f.aba) && passa(p));
+  const ord = {
+    valor: (a, b) => (reais(b) ?? -1) - (reais(a) ?? -1),
+    valorhora: (a, b) => ((reais(b) ?? -1) / b.horas_max) - ((reais(a) ?? -1) / a.horas_max),
+    horas: (a, b) => a.horas_max - b.horas_max,
+    propostas: (a, b) => (a.propostas ?? 999) - (b.propostas ?? 999),
+    data: (a, b) => idadeH(a) - idadeH(b),
+  }[f.ordem];
+  l.sort(ord);
+  $("contagem").textContent = `${l.length} projeto(s)`;
+  $("lista").innerHTML = l.length ? l.map(cartao).join("") : `<div class="vazio">Nenhum projeto com esses filtros.<br><button onclick="limpar()" style="margin-top:10px">Limpar filtros</button></div>`;
+}
+
+function cartao(p) {
+  const [v1, v2] = valor(p), [t1, t2] = tempo(p);
+  const aberto = abertos.has(p.id);
+  const rh = reais(p) != null ? `R$ ${Math.round(reais(p) / p.horas_max)}/h no máx.` : "";
+  return `
+  <div class="cartao ${p.status}">
+    <div>
+      <a class="titulo" href="${esc(p.link || "#")}" target="_blank" rel="noopener">${esc(p.titulo)}</a>
+      <div class="meta"><span class="fonte">${esc(p.fonte)}</span>${[p.categoria, p.nivel, quando(p)].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join("")}</div>
+      <ul>${p.resumo.slice(0, aberto ? 99 : 3).map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+      ${aberto ? `<div class="completo">${esc(p.descricao)}</div>` : ""}
+      <button class="mais" onclick="alternar(${p.id})">${aberto ? "▲ menos" : "▼ ver descrição completa"}</button>
+      ${tecs(p).length ? `<div class="tags">${tecs(p).map(t => `<span class="chip ${f.tecs.includes(t) ? "on" : ""}" data-tec="${esc(t)}">${esc(t)}</span>`).join("")}</div>` : ""}
+    </div>
+    <div class="lado">
+      <div class="num"><span>Valor</span><b>${esc(v1)}</b>${v2 ? `<small>${esc(v2)}</small>` : ""}</div>
+      <div class="num"><span>Tempo estimado</span><b>${t1}</b><small>${t2}${rh ? " · " + rh : ""}</small></div>
+      ${p.propostas != null ? `<div class="num"><span>Propostas</span><b class="${p.propostas > 30 ? "alto" : ""}">${p.propostas}</b></div>` : ""}
+      <div class="acoes">${ACOES.filter(([s]) => s !== "NOVO" || p.status !== "NOVO").map(([s, r]) =>
+        `<button class="${p.status === s ? "on" : ""}" onclick="marcar(${p.id}, '${s}')">${r}</button>`).join("")}</div>
+    </div>
+  </div>`;
+}
+
+function tudo() { salvar(); desenharFiltros(); desenharLista(); }
+function limpar() { f = {...PADRAO, aba: f.aba, ordem: f.ordem}; tudo(); }
+function alternar(id) { abertos.has(id) ? abertos.delete(id) : abertos.add(id); desenharLista(); }
+
+async function carregar() {
+  const r = await fetch("/api/projetos").then(r => r.json());
+  dados = r.projetos;
+  const e = r.estado;
+  $("estado").textContent = `${e.rodando ? "⏳ " : ""}${e.mensagem}${e.ultima ? " · última busca " + e.ultima : ""} · busca sozinho a cada 30 min · tempo estimado é aproximado (sem IA)`;
+  $("btnColetar").disabled = e.rodando;
+  $("btnColetar").textContent = e.rodando ? "Buscando…" : "Buscar agora";
+  desenharFiltros(); desenharLista();
+}
+async function post(url, corpo) {
+  const r = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(corpo || {})});
+  return {ok: r.ok, ...(await r.json())};
+}
+async function marcar(id, status) {
+  await post(`/api/status/${id}`, {status});
+  dados.find(p => p.id === id).status = status;
+  tudo();
+}
+
+// eventos
+$("abas").onclick = (e) => { const b = e.target.closest("[data-aba]"); if (b) { f.aba = b.dataset.aba; tudo(); } };
+document.querySelectorAll(".segm").forEach(s => s.onclick = (e) => {
+  const b = e.target.closest("button"); if (b) { f[s.dataset.f] = Number(b.dataset.v); tudo(); } });
+$("fFonte").onchange = () => { f.fontes = [...$("fFonte").querySelectorAll("input:checked")].map(i => i.value); tudo(); };
+document.body.addEventListener("click", (e) => {
+  const c = e.target.closest("[data-tec]"); if (!c) return;
+  const t = c.dataset.tec; f.tecs = f.tecs.includes(t) ? f.tecs.filter(x => x !== t) : [...f.tecs, t]; tudo();
+});
+let tBusca;
+$("busca").oninput = () => { clearTimeout(tBusca); tBusca = setTimeout(() => { f.busca = $("busca").value.trim(); tudo(); }, 200); };
+$("fValor").oninput = () => { f.valor = $("fValor").value; tudo(); };
+$("fComValor").onchange = () => { f.comValor = $("fComValor").checked; tudo(); };
+$("ordem").onchange = () => { f.ordem = $("ordem").value; tudo(); };
+$("btnLimpar").onclick = limpar;
+$("btnFiltros").onclick = () => $("filtros").classList.toggle("aberto");
+$("btnColetar").onclick = async () => { await post("/api/coletar"); carregar(); };
+$("btnLink").onclick = async () => {
+  $("msgAdd").textContent = "Lendo…";
+  const r = await post("/api/link", {url: $("url").value});
+  $("msgAdd").textContent = r.mensagem;
+  if (r.bloqueado) $("tTexto").focus();
+  if (r.ok) { $("url").value = ""; carregar(); }
+};
+$("btnTexto").onclick = async () => {
+  if (!$("tTexto").value.trim()) return;
+  const r = await post("/api/texto", {titulo: $("tTitulo").value, texto: $("tTexto").value,
+                                      link: $("url").value, orcamento: $("tOrc").value});
+  $("msgAdd").textContent = r.mensagem;
+  if (r.ok) { ["tTitulo","tTexto","tOrc","url"].forEach(i => $(i).value = ""); carregar(); }
+};
+carregar();
+setInterval(carregar, 20000);
+</script>
+</body>
+</html>
