@@ -63,6 +63,12 @@
   .titulo:hover { color:var(--prim); }
   .meta { color:var(--suave); font-size:12.5px; margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 10px; }
   .fonte { font-weight:700; color:var(--prim); display:inline-flex; align-items:center; gap:5px; }
+  .cartao.visto .titulo { opacity:.55; }
+  .nota { font-weight:700; padding:0 8px; border-radius:99px; background:var(--prim-claro); color:var(--prim); }
+  .nota.alta { background:var(--ok); color:#fff; } .nota.baixa { background:var(--fundo); color:var(--suave); }
+  .cota { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; font-size:13px; }
+  .cota .pilula b { color:var(--texto); } .cota .acabou { border-color:var(--ruim); color:var(--ruim); }
+  .pol { margin-top:3px; }
   .fav { width:16px; height:16px; border-radius:4px; vertical-align:middle; }
   ul { margin:8px 0 0; padding-left:18px; }
   li { margin:2px 0; }
@@ -139,6 +145,7 @@
     </nav>
     <input id="busca" placeholder="Buscar no título e na descrição (ex.: python automação)…">
     <button id="btnFiltros">Filtros</button>
+    <button id="btnAvisos" title="Avisar quando surgir projeto com nota alta e poucas propostas">🔔 Avisos</button>
     <button class="prim" id="btnColetar">Buscar agora</button>
   </div>
   <div class="abas" id="abas"></div>
@@ -233,10 +240,11 @@
       <textarea id="tTexto" placeholder="Se o site bloquear a leitura automática, cole aqui o texto do projeto…"></textarea>
       <div class="linha"><button id="btnTexto" style="flex:0">Resumir texto</button><span id="msgAdd" class="meta"></span></div>
     </details>
+    <div id="cota" class="cota"></div>
     <div class="topolista">
       <span id="contagem"></span>
       <select id="ordem">
-        <option value="data">Mais recentes</option>
+        <option value="chance">Melhor chance</option><option value="data">Mais recentes</option>
         <option value="valor">Maior valor</option>
         <option value="valorhora">Melhor R$/hora</option>
         <option value="horas">Mais rápidos</option>
@@ -250,16 +258,16 @@
 <script>
 const $ = (id) => document.getElementById(id);
 const COTACAO_USD = 5.5;   // só para comparar valores (o Workana vem em dólar)
-const ABAS = [["ATIVOS","Para ver"],["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartados"],["","Todos"]];
+const ABAS = [["CHANCE","🎯 Melhores chances"],["ATIVOS","Para ver"],["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartados"],["","Todos"]];
 const ACOES = [["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartar"],["NOVO","↺ Voltar"]];
-const PADRAO = {aba:"ATIVOS", busca:"", fontes:[], dias:0, valor:"", comValor:false, horas:0, propostas:0, tecs:[], ordem:"data"};
+const PADRAO = {aba:"CHANCE", busca:"", fontes:[], dias:0, valor:"", comValor:false, horas:0, propostas:0, tecs:[], ordem:"chance"};
 let dados = [], abertos = new Set();
 // ícone do site de onde veio o projeto (favicon pelo domínio; "Colado"/"Link" ficam sem)
 const DOMINIOS = {"99Freelas":"99freelas.com.br", "Workana":"workana.com", "Freelancer.com":"freelancer.com"};
 const iconeFonte = (nome) => DOMINIOS[nome]
   ? `<img class="fav" src="https://www.google.com/s2/favicons?domain=${DOMINIOS[nome]}&sz=64" alt="">` : "";
-let f = (() => { try { return {...PADRAO, ...JSON.parse(localStorage.getItem("bicos_filtros") || "{}")}; } catch { return {...PADRAO}; } })();
-const salvar = () => { try { localStorage.setItem("bicos_filtros", JSON.stringify(f)); } catch {} };
+let f = (() => { try { return {...PADRAO, ...JSON.parse(localStorage.getItem("bicos_filtros2") || "{}")}; } catch { return {...PADRAO}; } })();
+const salvar = () => { try { localStorage.setItem("bicos_filtros2", JSON.stringify(f)); } catch {} };
 
 const din = (v, m) => v == null ? null : v.toLocaleString("pt-BR", {style:"currency", currency:m || "BRL", maximumFractionDigits:0});
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -301,7 +309,7 @@ function passa(p, ignorar) {
   }
   return true;
 }
-const naAba = (p, aba) => aba === "ATIVOS" ? ["NOVO","INTERESSA"].includes(p.status) : !aba || p.status === aba;
+const naAba = (p, aba) => aba === "CHANCE" ? (["NOVO","INTERESSA"].includes(p.status) && chance(p).nota >= 55) : aba === "ATIVOS" ? ["NOVO","INTERESSA"].includes(p.status) : !aba || p.status === aba;
 
 function contar(lista, chave) {
   const c = {};
@@ -334,10 +342,12 @@ function desenharLista() {
     valorhora: (a, b) => ((reais(b) ?? -1) / b.horas_max) - ((reais(a) ?? -1) / a.horas_max),
     horas: (a, b) => a.horas_max - b.horas_max,
     propostas: (a, b) => (a.propostas ?? 999) - (b.propostas ?? 999),
+    chance: (a, b) => chance(b).nota - chance(a).nota,
     data: (a, b) => idadeH(a) - idadeH(b),
   }[f.ordem];
   l.sort(ord);
   $("contagem").textContent = `${l.length} projeto(s)`;
+  desenharCota();
   $("lista").innerHTML = l.length ? l.map(cartao).join("") : `<div class="vazio">Nenhum projeto com esses filtros.<br><button onclick="limpar()" style="margin-top:10px">Limpar filtros</button></div>`;
 }
 
@@ -346,10 +356,10 @@ function cartao(p) {
   const aberto = abertos.has(p.id);
   const rh = reais(p) != null ? `R$ ${Math.round(reais(p) / p.horas_max)}/h no máx.` : "";
   return `
-  <div class="cartao ${p.status}">
+  <div class="cartao ${p.status}${visitados.has(p.id) ? " visto" : ""}">
     <div>
-      <a class="titulo" href="${esc(p.link || "#")}" target="_blank" rel="noopener">${esc(p.titulo)}</a>
-      <div class="meta"><span class="fonte">${iconeFonte(p.fonte)}${esc(p.fonte)}</span>${[p.categoria, p.nivel, quando(p)].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join("")}</div>
+      <a class="titulo" href="${esc(p.link || "#")}" target="_blank" rel="noopener" onclick="visitar(${p.id})">${esc(p.titulo)}</a>
+      <div class="meta">${notaHtml(p)}<span class="fonte">${iconeFonte(p.fonte)}${esc(p.fonte)}</span>${[p.categoria, p.nivel, quando(p)].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join("")}</div>
       <ul>${p.resumo.slice(0, aberto ? 99 : 3).map(r => `<li>${esc(r)}</li>`).join("")}</ul>
       ${aberto ? `<div class="completo">${esc(p.descricao)}</div>` : ""}
       <button class="mais" onclick="alternar(${p.id})">${aberto ? "▲ menos" : "▼ ver descrição completa"}</button>
@@ -372,6 +382,7 @@ function alternar(id) { abertos.has(id) ? abertos.delete(id) : abertos.add(id); 
 async function carregar() {
   const r = await fetch("/api/projetos").then(r => r.json());
   dados = r.projetos;
+  avisarNovos();
   const e = r.estado;
   $("estado").textContent = `${e.rodando ? "⏳ " : ""}${e.mensagem}${e.ultima ? " · última busca " + e.ultima : ""} · busca sozinho a cada 30 min · tempo estimado é aproximado (sem IA)`;
   $("btnColetar").disabled = e.rodando;
@@ -385,6 +396,7 @@ async function post(url, corpo) {
 async function marcar(id, status) {
   await post(`/api/status/${id}`, {status});
   dados.find(p => p.id === id).status = status;
+  sites = await get("/api/sites");
   tudo();
 }
 
@@ -419,6 +431,77 @@ $("btnTexto").onclick = async () => {
   $("msgAdd").textContent = r.mensagem;
   if (r.ok) { ["tTitulo","tTexto","tOrc","url"].forEach(i => $(i).value = ""); carregar(); }
 };
+/* ---------- chance de valer a pena + cota + avisos ---------- */
+const MEU_STACK = ["Python","Django","Flask","FastAPI","Node","JavaScript","TypeScript","React","Angular","Next.js","SQL","MySQL",
+  "PostgreSQL","Selenium","Playwright","Scraping","API","Bot","Telegram","WhatsApp","HTML","CSS","Excel","VBA"];
+const ARMADILHA = /sem remunera|n[aã]o remunerad|permuta|comiss[aã]o|commission|unpaid|teste gr[aá]tis|free trial|gratuit|sociedade|em troca de|exposi[cç][aã]o|volunt[aá]ri/i;
+const SUA_AREA = /python|node|react|angular|javascript|typescript|\bsql\b|\bapi\b|\bbot\b|automa|scrap|\bsite\b|website|\bweb\b|sistema|\bapp\b|software|program|desenvolv|develop|backend|frontend|full.?stack|excel|vba|planilha|dashboard|suporte|support|atendimento|chatbot|integra/i;
+const lerSet = (k) => { try { return new Set(JSON.parse(localStorage.getItem(k) || "[]")); } catch { return new Set(); } };
+const gravarSet = (k, s) => { try { localStorage.setItem(k, JSON.stringify([...s].slice(-2000))); } catch {} };
+const visitados = lerSet("bicos_visitados"), notificados = lerSet("bicos_notificados");
+function visitar(id) { visitados.add(id); gravarSet("bicos_visitados", visitados); }
+
+function chance(p) {
+  if (p._c && p._c.t === dados.length + ":" + (typeof sites !== "undefined" ? sites.length : 0)) return p._c;
+  const m = []; let n = 0;
+  if (ARMADILHA.test(`${p.titulo} ${(p.descricao || "").slice(0, 400)}`)) {
+    return p._c = {nota: 0, motivos: ["possível armadilha (sem pagamento/permuta/comissão)"], t: dados.length + ":" + (typeof sites !== "undefined" ? sites.length : 0)};
+  }
+  const pr = p.propostas;
+  if (pr == null) n += 15;
+  else if (pr <= 3) { n += 35; m.push("quase sem concorrência"); }
+  else if (pr <= 10) { n += 30; m.push("poucas propostas"); }
+  else if (pr <= 20) n += 20;
+  else if (pr <= 40) n += 8; else m.push("muito concorrido");
+  const h = idadeH(p);
+  if (h < 1) { n += 25; m.push("publicado há menos de 1 h"); } else if (h < 3) { n += 22; m.push("publicado há poucas horas"); }
+  else if (h < 6) n += 18; else if (h < 24) n += 12; else if (h < 72) n += 5; else m.push("antigo");
+  const r = reais(p);
+  if (r != null && p.horas_max) {
+    const rh = r / p.horas_max;
+    if (rh >= 60) { n += 20; m.push("paga bem pelo tempo"); } else if (rh >= 40) n += 15; else if (rh >= 25) n += 10; else { n += 4; m.push("paga pouco pelo tempo"); }
+  } else n += 6;
+  const casam = tecs(p).filter(t => MEU_STACK.includes(t)).length;
+  if (casam >= 2) { n += 15; m.push("bate com seu stack"); } else if (casam === 1) n += 9; else if (!tecs(p).length) n += 4;
+  if (!casam && !SUA_AREA.test(`${p.titulo} ${(p.descricao || "").slice(0, 300)}`)) { n = Math.min(n, 40); m.push("fora da sua área"); }
+  const s = (typeof sites !== "undefined" ? sites : []).find(x => x.nome === p.fonte);
+  if (s && s.limite != null && s.usadas >= s.limite) { n = Math.min(n, 30); m.push("cota grátis do mês esgotada"); }
+  return p._c = {nota: Math.min(100, Math.round(n)), motivos: m, t: dados.length + ":" + (typeof sites !== "undefined" ? sites.length : 0)};
+}
+function notaHtml(p) {
+  const c = chance(p);
+  return `<span class="nota ${c.nota >= 70 ? "alta" : c.nota < 40 ? "baixa" : ""}" title="${esc(c.motivos.join(" · ") || "sem destaques")}">🎯 ${c.nota}</span>`;
+}
+function desenharCota() {
+  const l = (typeof sites !== "undefined" ? sites : []).filter(s => s.ativa && s.auto);
+  $("cota").innerHTML = l.map(s => {
+    const acabou = s.limite != null && s.usadas >= s.limite;
+    return `<span class="pilula ${acabou ? "acabou" : ""}" title="${esc(s.politica)}">${iconeFonte(s.nome)} ${esc(s.nome)}: ` +
+      (s.limite != null ? `<b>${Math.max(0, s.limite - s.usadas)}</b> de ${s.limite} ${esc(s.unidade)} restantes` : `${s.usadas} usadas · defina a cota em Sites`) + `</span>`;
+  }).join("") + `<span class="rot">cota grátis do mês · gaste nos de maior 🎯</span>`;
+}
+function avisarNovos() {
+  const bons = dados.filter(p => p.status === "NOVO" && chance(p).nota >= 70 && (p.propostas ?? 0) <= 8 && idadeH(p) < 3);
+  const primeira = notificados.size === 0 && !localStorage.getItem("bicos_notif_ok");
+  const novos = bons.filter(p => !notificados.has(p.id));
+  bons.forEach(p => notificados.add(p.id)); gravarSet("bicos_notificados", notificados);
+  try { localStorage.setItem("bicos_notif_ok", "1"); } catch {}
+  document.title = novos.length && !primeira ? `(${novos.length}) Bicos` : "Bicos";
+  if (primeira || !novos.length) return;
+  if ("Notification" in window && Notification.permission === "granted")
+    novos.slice(0, 3).forEach(p => new Notification(`🎯 ${chance(p).nota} · ${p.fonte}`, {body: p.titulo}));
+}
+function estadoAvisos() {
+  const ok = "Notification" in window && Notification.permission === "granted";
+  $("btnAvisos").textContent = ok ? "🔔 Avisos ligados" : "🔔 Ligar avisos";
+}
+$("btnAvisos").onclick = async () => {
+  if (!("Notification" in window)) return alert("Este navegador não suporta notificações.");
+  await Notification.requestPermission(); estadoAvisos();
+  if (Notification.permission === "granted") new Notification("Avisos ligados", {body: "Aviso quando surgir projeto com nota alta e poucas propostas (com o painel aberto)."});
+};
+estadoAvisos();
+
 /* ---------- telas: projetos / metas / sites ---------- */
 const brl = (n) => (n || 0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
 const hoje = () => new Date().toISOString().slice(0, 10);
@@ -481,14 +564,17 @@ async function carregarSites() {
   $("sLista").innerHTML = sites.map(s => `<div class="cx site ${s.ativa ? "" : "off"}">
     <img src="${ico(s.dominio)}" alt="">
     <div class="nome"><b>${esc(s.nome)}</b> <span class="pilula ${s.auto ? "auto" : ""}">${s.auto ? "busca automática" : "↗ busca manual"}</span>
-      <div class="rot">${esc(s.obs)}</div></div>
+      <div class="rot">${esc(s.obs)}</div><div class="rot pol">📋 ${esc(s.politica)}</div>${s.unidade ? `<div class="rot">Cota grátis por mês:
+        <input type="number" min="0" style="width:70px" data-limite="${esc(s.nome)}" value="${s.limite ?? ""}" placeholder="?"> ${esc(s.unidade)}
+        · usadas este mês: <b>${s.usadas}</b> (conta quando você marca ✉ Candidatei)</div>` : ""}</div>
     <label class="chave"><input type="checkbox" data-ativa="${esc(s.nome)}" ${s.ativa ? "checked" : ""}> ${s.auto ? "buscar" : "incluir"}</label>
     <a href="${esc(s.busca.replace("{q}", "python"))}" target="_blank" rel="noopener" data-busca="${esc(s.nome)}"><button>Ver vagas ↗</button></a>
     <a href="${esc(s.cadastro)}" target="_blank" rel="noopener"><button class="prim">Cadastro</button></a>
     <label class="chave"><input type="checkbox" data-cad="${esc(s.nome)}" ${s.cadastrado ? "checked" : ""}> cadastrei</label></div>`).join("");
 }
 $("sLista").onchange = async (e) => {
-  const a = e.target.dataset.ativa, c = e.target.dataset.cad;
+  const a = e.target.dataset.ativa, c = e.target.dataset.cad, l = e.target.dataset.limite;
+  if (l) { await post("/api/sites/limite", {nome: l, limite: e.target.value === "" ? null : Number(e.target.value)}); sites = await get("/api/sites"); return; }
   if (a) await post("/api/sites/ativa", {nome: a, ativa: e.target.checked ? 1 : 0});
   if (c) await post("/api/sites/cadastrado", {nome: c, feito: e.target.checked ? 1 : 0});
   carregarSites();
@@ -504,9 +590,9 @@ $("sAbrirBuscas").onclick = () => sites.filter(s => s.ativa && !s.auto).forEach(
 
 let viewSalva = "Projetos"; try { viewSalva = localStorage.getItem("bicos_view") || "Projetos"; } catch {}
 carregar();
-get("/api/sites").then(s => { sites = s; });
+get("/api/sites").then(s => { sites = s; desenharCota(); });
 mostrar(viewSalva);
-setInterval(() => { if (view === "Projetos") carregar(); }, 20000);
+setInterval(carregar, 60000);
 </script>
 </body>
 </html>
