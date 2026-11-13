@@ -85,7 +85,36 @@
   textarea { width:100%; min-height:100px; margin-top:8px; }
   .vazio { text-align:center; color:var(--suave); padding:50px 0; }
 
+  [hidden] { display:none !important; }
+  /* telas novas */
+  .views { display:flex; gap:2px; }
+  .views button { border:0; background:none; color:var(--suave); padding:6px 12px; border-radius:8px; }
+  .views button.on { background:var(--prim); color:#fff; }
+  .pagina { max-width:1000px; margin:0 auto; padding:16px; }
+  .cx { background:var(--cartao); border:1px solid var(--borda); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .linha-cx { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .grade { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
+  .grade .cx { margin-bottom:0; } .grade { margin-bottom:12px; }
+  .rot { color:var(--suave); font-size:13px; }
+  .big { font-size:26px; font-weight:700; }
+  .barra-prog { height:14px; background:var(--fundo); border-radius:99px; overflow:hidden; border:1px solid var(--borda); margin-top:8px; }
+  .barra-prog i { display:block; height:100%; width:0; background:var(--prim); transition:width .4s; }
+  .barra-prog i.ok { background:var(--ok); }
+  table { width:100%; border-collapse:collapse; } td, th { padding:6px 8px; border-bottom:1px solid var(--borda); text-align:left; }
+  .hist { display:flex; gap:10px; align-items:flex-end; height:150px; margin-top:8px; }
+  .hist div { flex:1; text-align:center; font-size:11px; color:var(--suave); }
+  .hist b { display:block; background:var(--prim); border-radius:6px 6px 0 0; min-height:2px; }
+  .hist b.ok { background:var(--ok); }
+  .site { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+  .site img { width:28px; height:28px; border-radius:6px; }
+  .site .nome { flex:1; min-width:180px; }
+  .site.off .nome { opacity:.55; }
+  .pilula { font-size:12px; padding:2px 9px; border-radius:99px; border:1px solid var(--borda); color:var(--suave); }
+  .pilula.auto { color:var(--ok); border-color:var(--ok); }
+  .chave { display:flex; align-items:center; gap:6px; cursor:pointer; }
   @media (max-width: 860px) {
+    .views button { padding:6px 8px; font-size:13px; }
+    .barra { flex-wrap:wrap; }
     .corpo { grid-template-columns:1fr; }
     #btnFiltros { display:inline-block; }
     aside { display:none; position:static; max-height:none; }
@@ -102,6 +131,11 @@
 <header>
   <div class="barra">
     <div class="marca">🔎 <span>Bicos</span></div>
+    <nav class="views" id="views">
+      <button data-view="Projetos" class="on">Projetos</button>
+      <button data-view="Metas">💰 Metas &amp; ganhos</button>
+      <button data-view="Sites">🌐 Sites &amp; cadastros</button>
+    </nav>
     <input id="busca" placeholder="Buscar no título e na descrição (ex.: python automação)…">
     <button id="btnFiltros">Filtros</button>
     <button class="prim" id="btnColetar">Buscar agora</button>
@@ -110,7 +144,42 @@
   <div id="estado"></div>
 </header>
 
-<div class="corpo">
+<div class="pagina" id="vMetas" hidden>
+  <div class="cx linha-cx">
+    <button id="mPrev">◀</button><input type="month" id="mMes"><button id="mNext">▶</button>
+    <span style="flex:1"></span>
+    <label>Meta do mês R$ <input id="mMeta" type="number" min="0" step="50" style="width:110px"></label>
+    <button class="prim" id="mSalvar">Salvar meta</button>
+  </div>
+  <div class="grade">
+    <div class="cx"><div class="rot">Ganhei</div><div class="big" id="mTotal">R$ 0</div></div>
+    <div class="cx"><div class="rot">Falta pra meta</div><div class="big" id="mFalta">—</div></div>
+    <div class="cx"><div class="rot">Por dia até o fim do mês</div><div class="big" id="mDia">—</div></div>
+  </div>
+  <div class="cx"><div class="linha-cx" style="justify-content:space-between"><b>Progresso</b><span id="mPct" class="rot"></span></div>
+    <div class="barra-prog"><i id="mBar"></i></div></div>
+  <div class="cx"><b>Registrar ganho</b>
+    <div class="linha-cx" style="margin-top:8px">
+      <input type="date" id="gData"><input id="gValor" type="number" min="0" step="0.01" placeholder="Valor R$" style="width:120px">
+      <input id="gPlat" list="plats" placeholder="Plataforma/cliente" style="width:170px"><datalist id="plats"></datalist>
+      <input id="gDesc" placeholder="O que foi feito" style="flex:1;min-width:150px">
+      <button class="prim" id="gAdd">Adicionar</button>
+    </div></div>
+  <div class="cx"><b>Ganhos do mês</b><table id="gTab"></table></div>
+  <div class="cx"><b>Histórico (últimos meses)</b><div class="hist" id="mHist"></div></div>
+</div>
+
+<div class="pagina" id="vSites" hidden>
+  <div class="cx linha-cx">
+    <button class="prim" id="sAbrirCadastros">🚀 Abrir cadastro dos que faltam</button>
+    <button id="sAbrirBuscas">↗ Abrir busca nos sites ↗ ligados</button>
+    <span class="rot">A busca usa o texto do campo de busca (ou "python"). O navegador pode pedir pra liberar pop-ups.</span>
+  </div>
+  <div class="rot" style="margin:0 4px">Ligado = o painel busca esse site sozinho. Os marcados com ↗ bloqueiam robô: abrem a busca deles no navegador.</div>
+  <div id="sLista"></div>
+</div>
+
+<div class="corpo" id="vProjetos">
   <aside id="filtros">
     <div class="grupo">
       <h3>Site</h3>
@@ -345,8 +414,94 @@ $("btnTexto").onclick = async () => {
   $("msgAdd").textContent = r.mensagem;
   if (r.ok) { ["tTitulo","tTexto","tOrc","url"].forEach(i => $(i).value = ""); carregar(); }
 };
+/* ---------- telas: projetos / metas / sites ---------- */
+const brl = (n) => (n || 0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+const hoje = () => new Date().toISOString().slice(0, 10);
+const ico = (d) => `https://www.google.com/s2/favicons?domain=${d}&sz=64`;
+const get = (url) => fetch(url).then(r => r.json());
+let sites = [], mes = hoje().slice(0, 7), view = "Projetos";
+
+function mostrar(v) {
+  view = v;
+  $("vProjetos").hidden = v !== "Projetos"; $("vMetas").hidden = v !== "Metas"; $("vSites").hidden = v !== "Sites";
+  ["abas", "estado", "busca", "btnFiltros"].forEach(i => $(i).hidden = v !== "Projetos");
+  document.querySelectorAll("#views button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
+  try { localStorage.setItem("bicos_view", v); } catch {}
+  if (v === "Metas") carregarGanhos();
+  if (v === "Sites") carregarSites();
+}
+$("views").onclick = (e) => { const b = e.target.closest("[data-view]"); if (b) mostrar(b.dataset.view); };
+
+// metas & ganhos
+function moverMes(d) { const [y, m] = mes.split("-").map(Number); const x = new Date(y, m - 1 + d, 1);
+  mes = x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0"); carregarGanhos(); }
+$("mPrev").onclick = () => moverMes(-1); $("mNext").onclick = () => moverMes(1);
+$("mMes").onchange = (e) => { if (e.target.value) { mes = e.target.value; carregarGanhos(); } };
+async function carregarGanhos() {
+  const d = await get("/api/ganhos?mes=" + mes);
+  $("mMes").value = mes; $("mMeta").value = d.meta || "";
+  $("mTotal").textContent = brl(d.total);
+  const falta = Math.max(0, d.meta - d.total);
+  $("mFalta").textContent = d.meta ? brl(falta) : "defina a meta";
+  const h = new Date(), [y, m] = mes.split("-").map(Number), fim = new Date(y, m, 0).getDate();
+  const dias = h.getFullYear() === y && h.getMonth() + 1 === m ? fim - h.getDate() + 1 : 0;
+  $("mDia").textContent = d.meta && !falta ? "meta batida 🎉" : d.meta && dias ? brl(falta / dias) : "—";
+  const p = d.meta ? Math.min(100, d.total / d.meta * 100) : 0;
+  $("mBar").style.width = p + "%"; $("mBar").className = p >= 100 ? "ok" : "";
+  $("mPct").textContent = d.meta ? `${p.toFixed(0)}% de ${brl(d.meta)}` : "sem meta definida";
+  $("gTab").innerHTML = "<tr><th>Data</th><th>Valor</th><th>Onde</th><th>O quê</th><th></th></tr>" + (d.itens.map(i =>
+    `<tr><td>${i.data.split("-").reverse().join("/")}</td><td>${brl(i.valor)}</td><td>${esc(i.plataforma)}</td><td>${esc(i.descricao)}</td>
+     <td><button data-del="${i.id}">✕</button></td></tr>`).join("") || `<tr><td colspan="5" class="rot">Nenhum ganho registrado neste mês.</td></tr>`);
+  const max = Math.max(1, ...d.historico.map(x => Math.max(x.total, x.meta)));
+  $("mHist").innerHTML = d.historico.map(x => `<div title="meta ${brl(x.meta)}"><span>${brl(x.total)}</span>
+    <b class="${x.meta && x.total >= x.meta ? "ok" : ""}" style="height:${x.total / max * 100}px"></b>${x.mes.slice(5)}/${x.mes.slice(2, 4)}</div>`).join("")
+    || `<span class="rot">Sem histórico ainda.</span>`;
+  if (!sites.length) sites = await get("/api/sites");
+  $("plats").innerHTML = [...new Set([...sites.map(s => s.nome), ...d.itens.map(i => i.plataforma)])].map(x => `<option value="${esc(x)}">`).join("");
+}
+$("mSalvar").onclick = async () => { await post("/api/meta", {mes, valor: $("mMeta").value || 0}); carregarGanhos(); };
+$("gAdd").onclick = async () => {
+  if (!$("gValor").value) return $("gValor").focus();
+  const data = $("gData").value || hoje();
+  await post("/api/ganhos", {data, valor: $("gValor").value, plataforma: $("gPlat").value, descricao: $("gDesc").value});
+  $("gValor").value = ""; $("gDesc").value = ""; mes = data.slice(0, 7); carregarGanhos();
+};
+$("gTab").onclick = async (e) => { const b = e.target.closest("[data-del]");
+  if (b && confirm("Apagar esse ganho?")) { await post("/api/ganhos/apagar", {id: Number(b.dataset.del)}); carregarGanhos(); } };
+$("gData").value = hoje();
+
+// sites & cadastros
+async function carregarSites() {
+  sites = await get("/api/sites");
+  $("sLista").innerHTML = sites.map(s => `<div class="cx site ${s.ativa ? "" : "off"}">
+    <img src="${ico(s.dominio)}" alt="">
+    <div class="nome"><b>${esc(s.nome)}</b> <span class="pilula ${s.auto ? "auto" : ""}">${s.auto ? "busca automática" : "↗ busca manual"}</span>
+      <div class="rot">${esc(s.obs)}</div></div>
+    <label class="chave"><input type="checkbox" data-ativa="${esc(s.nome)}" ${s.ativa ? "checked" : ""}> ${s.auto ? "buscar" : "incluir"}</label>
+    <a href="${esc(s.busca.replace("{q}", "python"))}" target="_blank" rel="noopener" data-busca="${esc(s.nome)}"><button>Ver vagas ↗</button></a>
+    <a href="${esc(s.cadastro)}" target="_blank" rel="noopener"><button class="prim">Cadastro</button></a>
+    <label class="chave"><input type="checkbox" data-cad="${esc(s.nome)}" ${s.cadastrado ? "checked" : ""}> cadastrei</label></div>`).join("");
+}
+$("sLista").onchange = async (e) => {
+  const a = e.target.dataset.ativa, c = e.target.dataset.cad;
+  if (a) await post("/api/sites/ativa", {nome: a, ativa: e.target.checked ? 1 : 0});
+  if (c) await post("/api/sites/cadastrado", {nome: c, feito: e.target.checked ? 1 : 0});
+  carregarSites();
+};
+$("sLista").addEventListener("click", (e) => {      // "Ver vagas" usa o texto da busca
+  const a = e.target.closest("[data-busca]"); if (!a) return;
+  const s = sites.find(x => x.nome === a.dataset.busca);
+  a.href = s.busca.replace("{q}", encodeURIComponent(f.busca || "python"));
+});
+$("sAbrirCadastros").onclick = () => sites.filter(s => !s.cadastrado).forEach(s => window.open(s.cadastro, "_blank"));
+$("sAbrirBuscas").onclick = () => sites.filter(s => s.ativa && !s.auto).forEach(s =>
+  window.open(s.busca.replace("{q}", encodeURIComponent(f.busca || "python")), "_blank"));
+
+let viewSalva = "Projetos"; try { viewSalva = localStorage.getItem("bicos_view") || "Projetos"; } catch {}
 carregar();
-setInterval(carregar, 20000);
+get("/api/sites").then(s => { sites = s; });
+mostrar(viewSalva);
+setInterval(() => { if (view === "Projetos") carregar(); }, 20000);
 </script>
 </body>
 </html>
