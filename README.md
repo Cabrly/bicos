@@ -3,6 +3,8 @@
 Painel local para encontrar freelas, acompanhar candidaturas e controlar metas de ganho mensal.
 Python (só biblioteca padrão) + SQLite + uma página HTML sem build.
 
+![Tela de projetos](docs/projetos.png)
+
 ## Como usar
 
 ```
@@ -42,3 +44,10 @@ Telas (também acessíveis por URL): `#/projetos`, `#/metas`, `#/sites/cadastros
   Se um site pedir verificação anti-robô, a coleta dele é pulada, sem tentar contornar.
 - As regras de plano grátis em `sites.json` vêm de fontes públicas de terceiros e mudam: confira na sua conta.
 - `bicos.db` (seus dados) não vai para o git.
+
+## Por que existe
+
+Feito para quem está começando como freelancer e não quer pagar plano de plataforma só para ver projetos novos
+antes dos outros. O painel mostra onde vale gastar as poucas candidaturas grátis de cada mês.
+
+Não precisa instalar nada além do Python 3.10+. Sem dependências, sem login, sem chaves.
