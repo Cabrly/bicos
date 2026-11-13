@@ -1,5 +1,6 @@
 """Metas e ganhos de freela por mês, sites (quais buscar) e cadastros. Usa o mesmo bicos.db."""
 import json
+import time
 from pathlib import Path
 
 SITES = json.loads(Path(__file__).with_name("sites.json").read_text(encoding="utf-8"))
@@ -12,16 +13,25 @@ def preparar(con):
       CREATE TABLE IF NOT EXISTS metas(mes TEXT PRIMARY KEY, valor REAL);
       CREATE TABLE IF NOT EXISTS sites_estado(nome TEXT PRIMARY KEY, ativa INT, cadastrado INT DEFAULT 0);
     """)
+    try:
+        con.execute("ALTER TABLE sites_estado ADD COLUMN limite INT")
+    except Exception:
+        pass                                   # já existe
     con.commit()
 
 
 def sites(con):
     est = {r["nome"]: r for r in con.execute("SELECT * FROM sites_estado")}
+    mes = time.strftime("%Y-%m")
+    usadas = {r[0]: r[1] for r in con.execute(
+        "SELECT fonte, COUNT(*) FROM projeto WHERE status='CANDIDATEI' AND substr(candidatei_em,1,7)=? GROUP BY fonte", (mes,))}
     out = []
     for s in SITES:
         e = est.get(s["nome"])
+        limite = e["limite"] if e and e["limite"] is not None else s.get("limite_gratis")
         out.append({**s, "ativa": bool(e["ativa"]) if e and e["ativa"] is not None else s["auto"],
-                    "cadastrado": bool(e["cadastrado"]) if e else False})
+                    "cadastrado": bool(e["cadastrado"]) if e else False,
+                    "limite": limite, "usadas": usadas.get(s["nome"], 0)})
     return out
 
 
@@ -32,8 +42,12 @@ def sites_ativos(con):
 def _upsert(con, nome, campo, valor):
     con.execute("INSERT OR IGNORE INTO sites_estado(nome, ativa, cadastrado) VALUES(?,?,0)",
                 (nome, next((1 if s["auto"] else 0) for s in SITES if s["nome"] == nome)))
-    con.execute(f"UPDATE sites_estado SET {campo}=? WHERE nome=?", (int(valor), nome))
+    con.execute(f"UPDATE sites_estado SET {campo}=? WHERE nome=?", (None if valor is None else int(valor), nome))
     con.commit()
+
+
+def definir_limite(con, nome, limite):
+    _upsert(con, nome, "limite", limite if limite not in (None, "") else None)
 
 
 def definir_ativa(con, nome, ativa):

@@ -8,14 +8,14 @@ import fontes
 
 CONSULTAS = ["python", "node.js", "react", "angular", "web developer", "automation", "api integration",
              "web scraping", "chatbot", "customer support"]
-MAX_PROPOSTAS = 40       # acima disso é leilão perdido
+MAX_PROPOSTAS = 25       # acima disso é leilão perdido (e gasta bid do plano grátis)
 
 
 def listar_freelancer(consultas=CONSULTAS) -> list[dict]:
     vistos, out = set(), []
     for q in consultas:
         url = ("https://www.freelancer.com/api/projects/0.1/projects/active/?compact=true&full_description=true"
-               "&limit=40&query=" + urllib.parse.quote(q))
+               "&limit=40&sort_field=submitdate&query=" + urllib.parse.quote(q))
         for x in json.loads(fontes.baixar(url))["result"]["projects"]:
             if x["id"] in vistos:
                 continue

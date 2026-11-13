@@ -16,7 +16,7 @@ import fontes_extra
 import metas
 
 PORTA = 8765
-INTERVALO_MIN = 30
+INTERVALO_MIN = 10          # mínimo educado: o 1º a mandar proposta tem mais chance
 PAGINAS = 3
 con = banco.conectar()
 metas.preparar(con)
@@ -126,6 +126,7 @@ class Painel(BaseHTTPRequestHandler):
                 "/api/ganhos": lambda: metas.add_ganho(con, d),
                 "/api/ganhos/apagar": lambda: metas.apagar_ganho(con, d["id"]),
                 "/api/meta": lambda: metas.definir_meta(con, d["mes"], d["valor"]),
+                "/api/sites/limite": lambda: metas.definir_limite(con, d["nome"], d.get("limite")),
                 "/api/sites/ativa": lambda: metas.definir_ativa(con, d["nome"], d["ativa"]),
                 "/api/sites/cadastrado": lambda: metas.definir_cadastrado(con, d["nome"], d["feito"]),
             }

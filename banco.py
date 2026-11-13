@@ -19,10 +19,11 @@ def conectar() -> sqlite3.Connection:
         status TEXT DEFAULT 'NOVO',            -- NOVO / INTERESSA / CANDIDATEI / DESCARTADO
         coletado_em TEXT DEFAULT (datetime('now','localtime')),
         UNIQUE(fonte, id_externo))""")
-    try:
-        con.execute("ALTER TABLE projeto ADD COLUMN moeda TEXT")
-    except sqlite3.OperationalError:
-        pass                                   # já existe
+    for col in ("moeda TEXT", "candidatei_em TEXT"):
+        try:
+            con.execute(f"ALTER TABLE projeto ADD COLUMN {col}")
+        except sqlite3.OperationalError:
+            pass                               # já existe
     return con
 
 
@@ -53,5 +54,6 @@ def listar(con) -> list[dict]:
 
 
 def marcar(con, pid: int, status: str) -> None:
-    con.execute("UPDATE projeto SET status=? WHERE id=?", (status, pid))
+    con.execute("UPDATE projeto SET status=?, candidatei_em=CASE WHEN ?='CANDIDATEI' THEN datetime('now','localtime') "
+                "ELSE NULL END WHERE id=?", (status, status, pid))
     con.commit()
