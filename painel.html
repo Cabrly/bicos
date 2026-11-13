@@ -62,7 +62,8 @@
   .titulo { font-weight:650; font-size:15.5px; color:var(--texto); text-decoration:none; }
   .titulo:hover { color:var(--prim); }
   .meta { color:var(--suave); font-size:12.5px; margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 10px; }
-  .fonte { font-weight:700; color:var(--prim); }
+  .fonte { font-weight:700; color:var(--prim); display:inline-flex; align-items:center; gap:5px; }
+  .fav { width:16px; height:16px; border-radius:4px; vertical-align:middle; }
   ul { margin:8px 0 0; padding-left:18px; }
   li { margin:2px 0; }
   .mais { background:none; border:0; padding:4px 0 0; color:var(--prim); font-size:13px; }
@@ -253,6 +254,10 @@ const ABAS = [["ATIVOS","Para ver"],["INTERESSA","⭐ Interessa"],["CANDIDATEI",
 const ACOES = [["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartar"],["NOVO","↺ Voltar"]];
 const PADRAO = {aba:"ATIVOS", busca:"", fontes:[], dias:0, valor:"", comValor:false, horas:0, propostas:0, tecs:[], ordem:"data"};
 let dados = [], abertos = new Set();
+// ícone do site de onde veio o projeto (favicon pelo domínio; "Colado"/"Link" ficam sem)
+const DOMINIOS = {"99Freelas":"99freelas.com.br", "Workana":"workana.com", "Freelancer.com":"freelancer.com"};
+const iconeFonte = (nome) => DOMINIOS[nome]
+  ? `<img class="fav" src="https://www.google.com/s2/favicons?domain=${DOMINIOS[nome]}&sz=64" alt="">` : "";
 let f = (() => { try { return {...PADRAO, ...JSON.parse(localStorage.getItem("bicos_filtros") || "{}")}; } catch { return {...PADRAO}; } })();
 const salvar = () => { try { localStorage.setItem("bicos_filtros", JSON.stringify(f)); } catch {} };
 
@@ -307,7 +312,7 @@ function contar(lista, chave) {
 function desenharFiltros() {
   const base = dados.filter(p => naAba(p, f.aba));
   $("fFonte").innerHTML = contar(base.filter(p => passa(p, "fonte")), p => [p.fonte]).map(([v, n]) =>
-    `<label class="opc"><input type="checkbox" value="${esc(v)}" ${f.fontes.includes(v) ? "checked" : ""}> ${esc(v)}<span class="n">${n}</span></label>`).join("")
+    `<label class="opc"><input type="checkbox" value="${esc(v)}" ${f.fontes.includes(v) ? "checked" : ""}> ${iconeFonte(v)}${esc(v)}<span class="n">${n}</span></label>`).join("")
     || `<span class="meta">—</span>`;
   const tec = contar(base.filter(p => passa(p, "tec")), tecs).slice(0, 24);
   f.tecs.filter(t => !tec.some(([v]) => v === t)).forEach(t => tec.push([t, 0]));
@@ -344,7 +349,7 @@ function cartao(p) {
   <div class="cartao ${p.status}">
     <div>
       <a class="titulo" href="${esc(p.link || "#")}" target="_blank" rel="noopener">${esc(p.titulo)}</a>
-      <div class="meta"><span class="fonte">${esc(p.fonte)}</span>${[p.categoria, p.nivel, quando(p)].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join("")}</div>
+      <div class="meta"><span class="fonte">${iconeFonte(p.fonte)}${esc(p.fonte)}</span>${[p.categoria, p.nivel, quando(p)].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join("")}</div>
       <ul>${p.resumo.slice(0, aberto ? 99 : 3).map(r => `<li>${esc(r)}</li>`).join("")}</ul>
       ${aberto ? `<div class="completo">${esc(p.descricao)}</div>` : ""}
       <button class="mais" onclick="alternar(${p.id})">${aberto ? "▲ menos" : "▼ ver descrição completa"}</button>
