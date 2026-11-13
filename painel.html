@@ -369,7 +369,7 @@ const MEU_STACK = ["Python","Django","Flask","FastAPI","Node","JavaScript","Type
 const ARMADILHA = /sem remunera|n[aã]o remunerad|permuta|comiss[aã]o|commission|unpaid|teste gr[aá]tis|free trial|gratuit|sociedade|em troca de|exposi[cç][aã]o|volunt[aá]ri/i;
 const SUA_AREA = /python|node|react|angular|javascript|typescript|\bsql\b|\bapi\b|\bbot\b|automa|scrap|\bsite\b|website|\bweb\b|sistema|\bapp\b|software|programa|desenvolvedor|developer|backend|frontend|full.?stack|excel|vba|planilha|dashboard|suporte|support|atendimento|chatbot|integra/i;
 const DESC_FORTE = /python|node\.?js|\breact\b|angular|javascript|typescript|\bsql\b|automation|scraping|chatbot|\bapi\b|developer|programmer|software engineer|desenvolvedor|programador/i;
-const NAO_DEV = /partnership|business development|sales|lead generation|marketing|recruit|virtual assistant|administrative|data entry|telemarket|call center|caller|\bseo\b|copywrit|translat|social media|bookkeep|accountant|designer|video edit/i;
+const NAO_DEV = /partnership|business development|sales|lead generation|marketing|recruit|virtual assistant|administrative|data entry|telemarket|call center|caller|\bseo\b|copywrit|translat|social media|bookkeep|accountant|designer|video edit|ui\/ux|\bdesign\b|\blogo\b|graphic|illustrat|animation/i;
 const lerSet = (k) => { try { return new Set(JSON.parse(localStorage.getItem(k) || "[]")); } catch { return new Set(); } };
 const gravarSet = (k, s) => { try { localStorage.setItem(k, JSON.stringify([...s].slice(-2000))); } catch {} };
 const visitados = lerSet("bicos_visitados"), notificados = lerSet("bicos_notificados");
