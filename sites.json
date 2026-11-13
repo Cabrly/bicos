@@ -1,7 +1,7 @@
 [
   {"nome": "99Freelas", "dominio": "99freelas.com.br", "auto": true, "obs": "BR, projetos em reais",
    "busca": "https://www.99freelas.com.br/projects?q={q}", "cadastro": "https://www.99freelas.com.br/user/new",
-   "limite_gratis": 10, "unidade": "conexões",
+   "limite_gratis": 10, "unidade": "conexões", "espera_gratis_h": 24,
    "politica": "Grátis: ~10 conexões por mês (proposta ou pergunta gasta conexão; projeto concorrido gasta mais; não acumulam). Comissão ~20% no grátis. Priorize projetos com poucas propostas."},
   {"nome": "Workana", "dominio": "workana.com", "auto": true, "obs": "BR/LatAm, bom pra dev",
    "busca": "https://www.workana.com/jobs?language=pt&query={q}", "cadastro": "https://www.workana.com/signup",

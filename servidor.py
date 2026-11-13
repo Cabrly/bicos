@@ -127,6 +127,7 @@ class Painel(BaseHTTPRequestHandler):
                 "/api/ganhos/apagar": lambda: metas.apagar_ganho(con, d["id"]),
                 "/api/meta": lambda: metas.definir_meta(con, d["mes"], d["valor"]),
                 "/api/sites/limite": lambda: metas.definir_limite(con, d["nome"], d.get("limite")),
+                "/api/sites/espera": lambda: metas.definir_espera(con, d["nome"], d.get("horas")),
                 "/api/sites/ativa": lambda: metas.definir_ativa(con, d["nome"], d["ativa"]),
                 "/api/sites/cadastrado": lambda: metas.definir_cadastrado(con, d["nome"], d["feito"]),
             }

@@ -13,10 +13,11 @@ def preparar(con):
       CREATE TABLE IF NOT EXISTS metas(mes TEXT PRIMARY KEY, valor REAL);
       CREATE TABLE IF NOT EXISTS sites_estado(nome TEXT PRIMARY KEY, ativa INT, cadastrado INT DEFAULT 0);
     """)
-    try:
-        con.execute("ALTER TABLE sites_estado ADD COLUMN limite INT")
-    except Exception:
-        pass                                   # já existe
+    for col in ("limite INT", "espera INT"):
+        try:
+            con.execute(f"ALTER TABLE sites_estado ADD COLUMN {col}")
+        except Exception:
+            pass                               # já existe
     con.commit()
 
 
@@ -31,7 +32,8 @@ def sites(con):
         limite = e["limite"] if e and e["limite"] is not None else s.get("limite_gratis")
         out.append({**s, "ativa": bool(e["ativa"]) if e and e["ativa"] is not None else s["auto"],
                     "cadastrado": bool(e["cadastrado"]) if e else False,
-                    "limite": limite, "usadas": usadas.get(s["nome"], 0)})
+                    "limite": limite, "usadas": usadas.get(s["nome"], 0),
+                    "espera": e["espera"] if e and e["espera"] is not None else (s.get("espera_gratis_h") or 0)})
     return out
 
 
@@ -48,6 +50,10 @@ def _upsert(con, nome, campo, valor):
 
 def definir_limite(con, nome, limite):
     _upsert(con, nome, "limite", limite if limite not in (None, "") else None)
+
+
+def definir_espera(con, nome, horas):
+    _upsert(con, nome, "espera", horas or 0)
 
 
 def definir_ativa(con, nome, ativa):

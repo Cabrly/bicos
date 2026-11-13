@@ -258,7 +258,7 @@
 <script>
 const $ = (id) => document.getElementById(id);
 const COTACAO_USD = 5.5;   // só para comparar valores (o Workana vem em dólar)
-const ABAS = [["CHANCE","🎯 Melhores chances"],["ATIVOS","Para ver"],["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartados"],["","Todos"]];
+const ABAS = [["CHANCE","🎯 Melhores chances"],["LIBERA","⏳ Libera em breve"],["ATIVOS","Para ver"],["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartados"],["","Todos"]];
 const ACOES = [["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartar"],["NOVO","↺ Voltar"]];
 const PADRAO = {aba:"CHANCE", busca:"", fontes:[], dias:0, valor:"", comValor:false, horas:0, propostas:0, tecs:[], ordem:"chance"};
 let dados = [], abertos = new Set();
@@ -309,7 +309,7 @@ function passa(p, ignorar) {
   }
   return true;
 }
-const naAba = (p, aba) => aba === "CHANCE" ? (["NOVO","INTERESSA"].includes(p.status) && chance(p).nota >= 55) : aba === "ATIVOS" ? ["NOVO","INTERESSA"].includes(p.status) : !aba || p.status === aba;
+const naAba = (p, aba) => aba === "CHANCE" ? (["NOVO","INTERESSA"].includes(p.status) && chance(p).nota >= 55 && !bloqueado(p)) : aba === "LIBERA" ? (["NOVO","INTERESSA"].includes(p.status) && chance(p).nota >= 55 && bloqueado(p)) : aba === "ATIVOS" ? ["NOVO","INTERESSA"].includes(p.status) : !aba || p.status === aba;
 
 function contar(lista, chave) {
   const c = {};
@@ -441,8 +441,13 @@ const gravarSet = (k, s) => { try { localStorage.setItem(k, JSON.stringify([...s
 const visitados = lerSet("bicos_visitados"), notificados = lerSet("bicos_notificados");
 function visitar(id) { visitados.add(id); gravarSet("bicos_visitados", visitados); }
 
+// plano grátis de alguns sites só deixa propor depois de X h do anúncio (ex.: 99Freelas = 24 h)
+const siteDe = (p) => (typeof sites !== "undefined" ? sites : []).find(x => x.nome === p.fonte);
+const espera = (p) => (siteDe(p) || {}).espera || 0;
+const liberaEm = (p) => Math.max(0, espera(p) - idadeH(p));
+const bloqueado = (p) => espera(p) > 0 && idadeH(p) < espera(p);
+const fmtH = (h) => h < 1 ? Math.max(1, Math.round(h * 60)) + " min" : Math.round(h) + " h";
 function chance(p) {
-  if (p._c && p._c.t === dados.length + ":" + (typeof sites !== "undefined" ? sites.length : 0)) return p._c;
   const m = []; let n = 0;
   if (ARMADILHA.test(`${p.titulo} ${(p.descricao || "").slice(0, 400)}`)) {
     return p._c = {nota: 0, motivos: ["possível armadilha (sem pagamento/permuta/comissão)"], t: dados.length + ":" + (typeof sites !== "undefined" ? sites.length : 0)};
@@ -453,7 +458,7 @@ function chance(p) {
   else if (pr <= 10) { n += 30; m.push("poucas propostas"); }
   else if (pr <= 20) n += 20;
   else if (pr <= 40) n += 8; else m.push("muito concorrido");
-  const h = idadeH(p);
+  const h = Math.max(0, idadeH(p) - espera(p));   // plano grátis: conta a partir da liberação
   if (h < 1) { n += 25; m.push("publicado há menos de 1 h"); } else if (h < 3) { n += 22; m.push("publicado há poucas horas"); }
   else if (h < 6) n += 18; else if (h < 24) n += 12; else if (h < 72) n += 5; else m.push("antigo");
   const r = reais(p);
@@ -470,7 +475,8 @@ function chance(p) {
 }
 function notaHtml(p) {
   const c = chance(p);
-  return `<span class="nota ${c.nota >= 70 ? "alta" : c.nota < 40 ? "baixa" : ""}" title="${esc(c.motivos.join(" · ") || "sem destaques")}">🎯 ${c.nota}</span>`;
+  return (bloqueado(p) ? `<span class="nota baixa" title="Plano grátis só deixa propor ${espera(p)} h depois do anúncio">🔒 libera em ${fmtH(liberaEm(p))}</span>` : "") +
+    `<span class="nota ${c.nota >= 70 ? "alta" : c.nota < 40 ? "baixa" : ""}" title="${esc(c.motivos.join(" · ") || "sem destaques")}">🎯 ${c.nota}</span>`;
 }
 function desenharCota() {
   const l = (typeof sites !== "undefined" ? sites : []).filter(s => s.ativa && s.auto);
@@ -481,7 +487,7 @@ function desenharCota() {
   }).join("") + `<span class="rot">cota grátis do mês · gaste nos de maior 🎯</span>`;
 }
 function avisarNovos() {
-  const bons = dados.filter(p => p.status === "NOVO" && chance(p).nota >= 70 && (p.propostas ?? 0) <= 8 && idadeH(p) < 3);
+  const bons = dados.filter(p => p.status === "NOVO" && chance(p).nota >= 70 && !bloqueado(p) && (p.propostas ?? 0) <= 8 && idadeH(p) - espera(p) < 3);
   const primeira = notificados.size === 0 && !localStorage.getItem("bicos_notif_ok");
   const novos = bons.filter(p => !notificados.has(p.id));
   bons.forEach(p => notificados.add(p.id)); gravarSet("bicos_notificados", notificados);
@@ -564,7 +570,7 @@ async function carregarSites() {
   $("sLista").innerHTML = sites.map(s => `<div class="cx site ${s.ativa ? "" : "off"}">
     <img src="${ico(s.dominio)}" alt="">
     <div class="nome"><b>${esc(s.nome)}</b> <span class="pilula ${s.auto ? "auto" : ""}">${s.auto ? "busca automática" : "↗ busca manual"}</span>
-      <div class="rot">${esc(s.obs)}</div><div class="rot pol">📋 ${esc(s.politica)}</div>${s.unidade ? `<div class="rot">Cota grátis por mês:
+      <div class="rot">${esc(s.obs)}</div><div class="rot pol">📋 ${esc(s.politica)}</div>${s.auto ? `<div class="rot">Espera do plano grátis: <input type="number" min="0" style="width:60px" data-espera="${esc(s.nome)}" value="${s.espera ?? 0}"> h após o anúncio pra poder propor (0 = sem espera)</div>` : ""}${s.unidade ? `<div class="rot">Cota grátis por mês:
         <input type="number" min="0" style="width:70px" data-limite="${esc(s.nome)}" value="${s.limite ?? ""}" placeholder="?"> ${esc(s.unidade)}
         · usadas este mês: <b>${s.usadas}</b> (conta quando você marca ✉ Candidatei)</div>` : ""}</div>
     <label class="chave"><input type="checkbox" data-ativa="${esc(s.nome)}" ${s.ativa ? "checked" : ""}> ${s.auto ? "buscar" : "incluir"}</label>
@@ -573,7 +579,8 @@ async function carregarSites() {
     <label class="chave"><input type="checkbox" data-cad="${esc(s.nome)}" ${s.cadastrado ? "checked" : ""}> cadastrei</label></div>`).join("");
 }
 $("sLista").onchange = async (e) => {
-  const a = e.target.dataset.ativa, c = e.target.dataset.cad, l = e.target.dataset.limite;
+  const a = e.target.dataset.ativa, c = e.target.dataset.cad, l = e.target.dataset.limite, w = e.target.dataset.espera;
+  if (w !== undefined) { await post("/api/sites/espera", {nome: w, horas: Number(e.target.value) || 0}); sites = await get("/api/sites"); tudo(); return; }
   if (l) { await post("/api/sites/limite", {nome: l, limite: e.target.value === "" ? null : Number(e.target.value)}); sites = await get("/api/sites"); return; }
   if (a) await post("/api/sites/ativa", {nome: a, ativa: e.target.checked ? 1 : 0});
   if (c) await post("/api/sites/cadastrado", {nome: c, feito: e.target.checked ? 1 : 0});
