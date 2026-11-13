@@ -116,6 +116,9 @@
   .site img { width:28px; height:28px; border-radius:6px; }
   .site .nome { flex:1; min-width:180px; }
   .site.off .nome { opacity:.55; }
+  .resumo-pol { margin:8px 0; } .resumo-pol li { margin:4px 0; }
+  .sem { font-size:18px; } td.vered { min-width:260px; font-size:13px; }
+  .saldo.pos { color:var(--ok); font-weight:600; } .saldo.neg { color:var(--ruim); font-weight:600; }
   .pilula { font-size:12px; padding:2px 9px; border-radius:99px; border:1px solid var(--borda); color:var(--suave); }
   .pilula.auto { color:var(--ok); border-color:var(--ok); }
   .chave { display:flex; align-items:center; gap:6px; cursor:pointer; }
@@ -142,6 +145,7 @@
       <button data-view="Projetos" class="on">Projetos</button>
       <button data-view="Metas">💰 Metas &amp; ganhos</button>
       <button data-view="Sites">🌐 Sites &amp; cadastros</button>
+      <button data-view="Politicas">📋 Políticas</button>
     </nav>
     <input id="busca" placeholder="Buscar no título e na descrição (ex.: python automação)…">
     <button id="btnFiltros">Filtros</button>
@@ -185,6 +189,30 @@
   </div>
   <div class="rot" style="margin:0 4px">Ligado = o painel busca esse site sozinho. Os marcados com ↗ bloqueiam robô: abrem a busca deles no navegador.</div>
   <div id="sLista"></div>
+</div>
+
+<div class="pagina" id="vPoliticas" hidden>
+  <div class="cx">
+    <b>Resumo rápido</b> <span class="rot">(minha avaliação a partir das regras que encontrei; confira na sua conta)</span>
+    <ul class="resumo-pol">
+      <li><b>Comece 100% grátis.</b> Nenhum site exige pagar pra você começar a propor.</li>
+      <li><b>99Freelas é onde pagar mais muda o jogo:</b> as primeiras 24 h dos projetos são exclusivas de assinantes, quando há menos concorrência.</li>
+      <li><b>Freelancer.com tem o upgrade mais barato</b> (Basic ~US$ 5 = 50 bids em vez de 6) se você já tiver proposta pronta.</li>
+      <li><b>Workana e Upwork:</b> só invista depois de converter propostas em clientes; mais cota não ajuda com taxa de resposta baixa.</li>
+      <li><b>GetNinjas</b> não funciona sem pagar e <b>Toptal</b> exige experiência: fora do plano por enquanto.</li>
+    </ul>
+    <div class="rot">🟢 grátis basta por enquanto · 🟡 pagar pode compensar · 🔴 só com orçamento / não é pra agora</div>
+  </div>
+  <div class="cx"><div style="overflow-x:auto"><table id="pTab"></table></div></div>
+  <div class="cx">
+    <b>Vale pagar o plano? Calculadora</b>
+    <div class="linha-cx" style="margin:8px 0">
+      <label>Quanto você espera faturar por mês no site: R$ <input id="pFat" type="number" min="0" step="100" style="width:120px"></label>
+      <span class="rot">(já vem com a sua meta do mês)</span>
+    </div>
+    <div id="pCalc"></div>
+    <div class="rot" style="margin-top:6px">Considera só a economia na comissão. Os benefícios (mais propostas, acesso nas primeiras 24 h) valem além disso. Dólar a R$ 5,50 (aproximado).</div>
+  </div>
 </div>
 
 <div class="corpo" id="vProjetos">
@@ -517,12 +545,13 @@ let sites = [], mes = hoje().slice(0, 7), view = "Projetos";
 
 function mostrar(v) {
   view = v;
-  $("vProjetos").hidden = v !== "Projetos"; $("vMetas").hidden = v !== "Metas"; $("vSites").hidden = v !== "Sites";
+  $("vProjetos").hidden = v !== "Projetos"; $("vMetas").hidden = v !== "Metas"; $("vSites").hidden = v !== "Sites"; $("vPoliticas").hidden = v !== "Politicas";
   ["abas", "estado", "busca", "btnFiltros"].forEach(i => $(i).hidden = v !== "Projetos");
   document.querySelectorAll("#views button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
   try { localStorage.setItem("bicos_view", v); } catch {}
   if (v === "Metas") carregarGanhos();
   if (v === "Sites") carregarSites();
+  if (v === "Politicas") carregarPoliticas();
 }
 $("views").onclick = (e) => { const b = e.target.closest("[data-view]"); if (b) mostrar(b.dataset.view); };
 
@@ -594,6 +623,36 @@ $("sLista").addEventListener("click", (e) => {      // "Ver vagas" usa o texto d
 $("sAbrirCadastros").onclick = () => sites.filter(s => !s.cadastrado).forEach(s => window.open(s.cadastro, "_blank"));
 $("sAbrirBuscas").onclick = () => sites.filter(s => s.ativa && !s.auto).forEach(s =>
   window.open(s.busca.replace("{q}", encodeURIComponent(f.busca || "python")), "_blank"));
+
+/* ---------- políticas ---------- */
+const SEMAFORO = {verde: ["🟢", "Grátis basta"], amarelo: ["🟡", "Pagar pode compensar"], vermelho: ["🔴", "Só com orçamento"]};
+async function carregarPoliticas() {
+  sites = await get("/api/sites");
+  if (!$("pFat").value) { const g = await get("/api/ganhos?mes=" + hoje().slice(0, 7)); $("pFat").value = g.meta || 1000; }
+  desenharPoliticas();
+}
+function desenharPoliticas() {
+  const maisBarato = (s) => (s.planos_pagos || []).filter(p => p.preco_brl != null).sort((a, b) => a.preco_brl - b.preco_brl)[0];
+  $("pTab").innerHTML = `<tr><th>Site</th><th>Plano grátis</th><th>Espera</th><th>Taxa grátis</th><th>Plano pago mais barato</th><th>Vale investir?</th></tr>` +
+    sites.map(s => { const [ic, tx] = SEMAFORO[s.semaforo] || ["", ""]; const p = maisBarato(s);
+      return `<tr><td><span style="white-space:nowrap">${iconeFonte(s.nome) || `<img class="fav" src="${ico(s.dominio)}" alt="">`} <b>${esc(s.nome)}</b></span></td>
+        <td>${esc(s.gratis_curto)}</td><td>${s.espera ? s.espera + " h" : "—"}</td>
+        <td>${s.comissao_gratis != null ? s.comissao_gratis + "%" : "—"}</td>
+        <td>${p ? `${esc(p.nome)} ~${brl(p.preco_brl)}/mês${p.comissao != null ? ` · taxa ${p.comissao}%` : ""}<div class="rot">${esc(p.beneficio)}</div>` : "—"}</td>
+        <td class="vered"><span class="sem" title="${tx}">${ic}</span> ${esc(s.veredito)}</td></tr>`; }).join("");
+  const fat = Number($("pFat").value) || 0, linhas = [];
+  sites.forEach(s => (s.planos_pagos || []).forEach(p => {
+    if (p.preco_brl == null || p.comissao == null || s.comissao_gratis == null) return;
+    const dif = s.comissao_gratis - p.comissao; if (dif <= 0) return;
+    const economia = fat * dif / 100, saldo = economia - p.preco_brl, eq = p.preco_brl / (dif / 100);
+    linhas.push(`<tr><td><b>${esc(s.nome)}</b> ${esc(p.nome)}</td><td>${brl(p.preco_brl)}/mês</td><td>${s.comissao_gratis}% → ${p.comissao}%</td>
+      <td>${brl(economia)}</td><td class="saldo ${saldo >= 0 ? "pos" : "neg"}">${saldo >= 0 ? "+" : ""}${brl(saldo)}</td>
+      <td>${brl(eq)}/mês <span class="rot">${esc(p.beneficio)}</span></td></tr>`);
+  }));
+  $("pCalc").innerHTML = linhas.length ? `<div style="overflow-x:auto"><table><tr><th>Plano</th><th>Custo</th><th>Taxa</th><th>Economia com ${brl(fat)}/mês</th><th>Saldo</th><th>Equilíbrio (faturamento)</th></tr>${linhas.join("")}</table></div>`
+    : `<span class="rot">Sem planos com taxa conhecida.</span>`;
+}
+$("pFat").oninput = desenharPoliticas;
 
 let viewSalva = "Projetos"; try { viewSalva = localStorage.getItem("bicos_view") || "Projetos"; } catch {}
 carregar();
