@@ -12,11 +12,14 @@ from pathlib import Path
 import analise
 import banco
 import fontes
+import fontes_extra
+import metas
 
 PORTA = 8765
 INTERVALO_MIN = 30
 PAGINAS = 3
 con = banco.conectar()
+metas.preparar(con)
 trava = threading.Lock()
 estado = {"rodando": False, "mensagem": "Ainda não coletou.", "ultima": None}
 
@@ -45,14 +48,24 @@ def _coletar_workana() -> tuple[int, int]:
     return len(lista), sum(banco.gravar(con, analise.analisar(p)) for p in lista)
 
 
+def _coletar_freelancer() -> tuple[int, int]:
+    estado["mensagem"] = "Freelancer.com…"
+    lista = fontes_extra.listar_freelancer()
+    return len(lista), sum(banco.gravar(con, analise.analisar(p)) for p in lista)
+
+
 def coletar() -> str:
-    """As duas fontes, cada uma isolada: uma falhar não derruba a outra."""
+    """Só os sites ligados no painel, cada um isolado: um falhar não derruba os outros."""
     if not trava.acquire(blocking=False):
         return "Já tem uma coleta rodando."
     estado["rodando"] = True
     partes = []
     try:
-        for nome, fn in (("99Freelas", _coletar_99), ("Workana", _coletar_workana)):
+        ativos = metas.sites_ativos(con)
+        for nome, fn in (("99Freelas", _coletar_99), ("Workana", _coletar_workana),
+                         ("Freelancer.com", _coletar_freelancer)):
+            if nome not in ativos:
+                continue
             try:
                 lidos, novos = fn()
                 partes.append(f"{nome}: {lidos} lido(s), {novos} novo(s)")
@@ -95,6 +108,11 @@ class Painel(BaseHTTPRequestHandler):
             self.wfile.write(corpo)
         elif self.path == "/api/projetos":
             self._json({"projetos": banco.listar(con), "estado": estado})
+        elif self.path == "/api/sites":
+            self._json(metas.sites(con))
+        elif self.path.startswith("/api/ganhos"):
+            mes = self.path.partition("mes=")[2] or time.strftime("%Y-%m")
+            self._json(metas.resumo_mes(con, mes))
         else:
             self._json({"erro": "não existe"}, 404)
 
@@ -104,6 +122,16 @@ class Painel(BaseHTTPRequestHandler):
                 threading.Thread(target=coletar, daemon=True).start()
                 return self._json({"mensagem": "Coleta iniciada."})
             d = self._corpo()
+            rotas = {
+                "/api/ganhos": lambda: metas.add_ganho(con, d),
+                "/api/ganhos/apagar": lambda: metas.apagar_ganho(con, d["id"]),
+                "/api/meta": lambda: metas.definir_meta(con, d["mes"], d["valor"]),
+                "/api/sites/ativa": lambda: metas.definir_ativa(con, d["nome"], d["ativa"]),
+                "/api/sites/cadastrado": lambda: metas.definir_cadastrado(con, d["nome"], d["feito"]),
+            }
+            if self.path in rotas:
+                rotas[self.path]()
+                return self._json({"ok": True})
             if self.path == "/api/link":
                 try:
                     p = fontes.por_link(d["url"].strip())
