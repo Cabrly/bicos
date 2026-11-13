@@ -321,5 +321,27 @@
   "gratis_curto": "perfil grátis · clientes te procuram · taxa ~5%",
   "planos_pagos": [],
   "veredito": "Grátis. Capriche no perfil; não há o que investir."
+ },
+ {
+  "nome": "Reddit r/forhire",
+  "dominio": "reddit.com",
+  "auto": true,
+  "obs": "clientes postam [HIRING]; quase tudo em inglês",
+  "busca": "https://www.reddit.com/r/forhire/search/?q={q}&restrict_sr=1&sort=new",
+  "cadastro": "https://www.reddit.com/register",
+  "limite_gratis": null,
+  "unidade": "",
+  "periodo": "mês",
+  "espera_gratis_h": 0,
+  "politica": "Sem plano, cota ou nota: o cliente posta [HIRING] e você responde direto. Muito pedido sem pagamento (o painel aplica o filtro de armadilha). O Reddit limita a leitura, então o painel lê 1 vez por ciclo.",
+  "planos": "Grátis, sem comissão. Combine pagamento adiantado/parcial e use PayPal ou Wise; desconfie de pedido de trabalho antes de pagar.",
+  "confianca": "média",
+  "oficial": "https://www.reddit.com/r/forhire/",
+  "oficial2": "",
+  "semaforo": "verde",
+  "comissao_gratis": 0,
+  "gratis_curto": "sem cota · responde direto ao cliente · quase tudo em inglês",
+  "planos_pagos": [],
+  "veredito": "Grátis e sem limite: bom pra perfil zerado. Exige inglês e cuidado com golpe e pedido sem pagamento."
  }
 ]

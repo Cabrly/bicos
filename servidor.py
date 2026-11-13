@@ -54,6 +54,12 @@ def _coletar_freelancer() -> tuple[int, int]:
     return len(lista), sum(banco.gravar(con, analise.analisar(p)) for p in lista)
 
 
+def _coletar_reddit() -> tuple[int, int]:
+    estado["mensagem"] = "Reddit r/forhire…"
+    lista = fontes_extra.listar_reddit()
+    return len(lista), sum(banco.gravar(con, analise.analisar(p)) for p in lista)
+
+
 def coletar() -> str:
     """Só os sites ligados no painel, cada um isolado: um falhar não derruba os outros."""
     if not trava.acquire(blocking=False):
@@ -63,7 +69,7 @@ def coletar() -> str:
     try:
         ativos = metas.sites_ativos(con)
         for nome, fn in (("99Freelas", _coletar_99), ("Workana", _coletar_workana),
-                         ("Freelancer.com", _coletar_freelancer)):
+                         ("Freelancer.com", _coletar_freelancer), ("Reddit r/forhire", _coletar_reddit)):
             if nome not in ativos:
                 continue
             try:

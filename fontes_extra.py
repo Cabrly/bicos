@@ -45,3 +45,42 @@ def listar_freelancer(consultas=CONSULTAS) -> list[dict]:
             out.append(p)
         time.sleep(fontes.PAUSA_S)
     return out
+
+
+# ---------------------------------------------------------------- Reddit r/forhire
+def listar_reddit() -> list[dict]:
+    """Posts [HIRING] do r/forhire: o cliente fala direto com você (sem cota, sem nota). O Reddit limita a
+    taxa de leitura, então é UMA requisição por ciclo e com User-Agent honesto."""
+    import html as _html
+    import re as _re
+    import urllib.error
+    import urllib.request
+    import xml.etree.ElementTree as ET
+    req = urllib.request.Request("https://www.reddit.com/r/forhire/new/.rss?limit=50",
+                                 headers={"User-Agent": "bicos-painel/1.0 (leitura pessoal)"})
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            raiz = ET.fromstring(r.read())
+    except urllib.error.HTTPError as e:
+        if e.code == 429:
+            raise RuntimeError("o Reddit limitou a leitura; tenta no próximo ciclo") from e
+        raise
+    ns = {"a": "http://www.w3.org/2005/Atom"}
+    out = []
+    for e in raiz.findall("a:entry", ns):
+        titulo = _html.unescape(e.findtext("a:title", "", ns)).strip()
+        if not _re.match(r"\s*[\[(]?\s*hiring", titulo, _re.I):
+            continue                              # [FOR HIRE] são freelancers se oferecendo
+        link = (e.find("a:link", ns).get("href") if e.find("a:link", ns) is not None else "")
+        corpo = e.findtext("a:content", "", ns) or ""
+        bruto = e.findtext("a:updated", "", ns) or ""
+        try:      # o Reddit manda UTC; o painel usa hora local
+            from datetime import datetime as _dt
+            quando = _dt.fromisoformat(bruto).astimezone().replace(tzinfo=None).isoformat(timespec="minutes")
+        except ValueError:
+            quando = ""
+        out.append({"fonte": "Reddit r/forhire", "id_externo": e.findtext("a:id", link, ns), "link": link,
+                    "titulo": _re.sub(r"^\s*[\[(]?\s*hiring\s*[\])]?\s*[:\-]?\s*", "", titulo, flags=_re.I) or titulo,
+                    "categoria": None, "nivel": None, "propostas": None,
+                    "publicado_em": quando or None, "descricao": corpo})
+    return out

@@ -188,6 +188,13 @@
     <span class="rot">A busca usa o texto do campo de busca (ou "python"). O navegador pode pedir pra liberar pop-ups.</span>
   </div>
   <div class="rot" style="margin:0 4px">Ligado = o painel busca esse site sozinho. Os marcados com ↗ bloqueiam robô: abrem a busca deles no navegador.</div>
+  <div class="cx" id="redes">
+    <b>🔎 Redes sociais: buscas prontas</b>
+    <div class="rot">Eu não consigo ler essas redes sozinho (exigem login e bloqueiam robô), mas cada botão abre a busca já montada, com os posts mais recentes. Troque o termo se quiser.</div>
+    <div class="linha-cx" style="margin:8px 0"><label>Termo: <input id="rQ" value="desenvolvedor" style="width:200px"></label>
+      <button class="prim" id="rTodas">Abrir todas</button></div>
+    <div id="rLista"></div>
+  </div>
   <div id="sLista"></div>
 </div>
 
@@ -291,7 +298,7 @@ const ACOES = [["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["D
 const PADRAO = {aba:"CHANCE", busca:"", fontes:[], dias:0, valor:"", comValor:false, horas:0, propostas:0, tecs:[], ordem:"chance"};
 let dados = [], abertos = new Set();
 // ícone do site de onde veio o projeto (favicon pelo domínio; "Colado"/"Link" ficam sem)
-const DOMINIOS = {"99Freelas":"99freelas.com.br", "Workana":"workana.com", "Freelancer.com":"freelancer.com"};
+const DOMINIOS = {"99Freelas":"99freelas.com.br", "Workana":"workana.com", "Freelancer.com":"freelancer.com", "Reddit r/forhire":"reddit.com"};
 const iconeFonte = (nome) => DOMINIOS[nome]
   ? `<img class="fav" src="https://www.google.com/s2/favicons?domain=${DOMINIOS[nome]}&sz=64" alt="">` : "";
 let f = (() => { try { return {...PADRAO, ...JSON.parse(localStorage.getItem("bicos_filtros2") || "{}")}; } catch { return {...PADRAO}; } })();
@@ -550,7 +557,7 @@ function mostrar(v) {
   document.querySelectorAll("#views button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
   try { localStorage.setItem("bicos_view", v); } catch {}
   if (v === "Metas") carregarGanhos();
-  if (v === "Sites") carregarSites();
+  if (v === "Sites") { carregarSites(); desenharRedes(); }
   if (v === "Politicas") carregarPoliticas();
 }
 $("views").onclick = (e) => { const b = e.target.closest("[data-view]"); if (b) mostrar(b.dataset.view); };
@@ -653,6 +660,27 @@ function desenharPoliticas() {
     : `<span class="rot">Sem planos com taxa conhecida.</span>`;
 }
 $("pFat").oninput = desenharPoliticas;
+
+/* ---------- redes sociais: buscas prontas ---------- */
+const gg = (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}&tbs=qdr:d`;
+const REDES = [
+  ["LinkedIn: posts recentes", "linkedin.com", (q) => `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(`(procuro OR preciso) ${q} (freela OR freelancer)`)}&datePosted=%22past-24h%22&sortBy=%22date_posted%22`],
+  ["X / Twitter: recentes", "x.com", (q) => `https://x.com/search?q=${encodeURIComponent(`(procuro OR preciso) ${q} freela`)}&f=live`],
+  ["Facebook: posts", "facebook.com", (q) => `https://www.facebook.com/search/posts?q=${encodeURIComponent(q + " freela")}`],
+  ["Instagram: hashtag", "instagram.com", (q) => `https://www.instagram.com/explore/tags/${encodeURIComponent((q + "freelancer").replace(/\s+/g, "").toLowerCase())}/`],
+  ["Telegram: grupos e canais (via Google)", "telegram.org", (q) => gg(`site:t.me ${q} freela vagas`)],
+  ["WhatsApp: grupos (via Google)", "whatsapp.com", (q) => gg(`site:chat.whatsapp.com ${q} freela`)],
+  ["Google: pedidos das últimas 24 h", "google.com", (q) => gg(`("preciso de" OR "procuro") ${q} freelancer`)],
+  ["Reddit: r/forhire", "reddit.com", (q) => `https://www.reddit.com/r/forhire/search/?q=${encodeURIComponent(q)}&restrict_sr=1&sort=new`],
+];
+const termoRede = () => $("rQ").value.trim() || "desenvolvedor";
+function desenharRedes() {
+  $("rLista").innerHTML = REDES.map(([nome, dom], i) => `<div class="site" style="padding:5px 0">
+    <img src="${ico(dom)}" alt=""><div class="nome"><b>${esc(nome)}</b></div>
+    <a href="#" data-rede="${i}" target="_blank" rel="noopener"><button>Abrir busca ↗</button></a></div>`).join("");
+}
+$("rLista").addEventListener("click", (e) => { const a = e.target.closest("[data-rede]"); if (a) a.href = REDES[a.dataset.rede][2](termoRede()); });
+$("rTodas").onclick = () => REDES.forEach(([, , url]) => window.open(url(termoRede()), "_blank"));
 
 let viewSalva = "Projetos"; try { viewSalva = localStorage.getItem("bicos_view") || "Projetos"; } catch {}
 carregar();
