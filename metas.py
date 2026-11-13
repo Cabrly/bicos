@@ -1,6 +1,7 @@
 """Metas e ganhos de freela por mês, sites (quais buscar) e cadastros. Usa o mesmo bicos.db."""
 import json
 import time
+from datetime import datetime, timedelta
 from pathlib import Path
 
 SITES = json.loads(Path(__file__).with_name("sites.json").read_text(encoding="utf-8"))
@@ -24,15 +25,19 @@ def preparar(con):
 def sites(con):
     est = {r["nome"]: r for r in con.execute("SELECT * FROM sites_estado")}
     mes = time.strftime("%Y-%m")
-    usadas = {r[0]: r[1] for r in con.execute(
+    hoje = datetime.now()
+    segunda = (hoje - timedelta(days=hoje.weekday())).strftime("%Y-%m-%d")
+    usadas_mes = {r[0]: r[1] for r in con.execute(
         "SELECT fonte, COUNT(*) FROM projeto WHERE status='CANDIDATEI' AND substr(candidatei_em,1,7)=? GROUP BY fonte", (mes,))}
+    usadas_sem = {r[0]: r[1] for r in con.execute(
+        "SELECT fonte, COUNT(*) FROM projeto WHERE status='CANDIDATEI' AND candidatei_em>=? GROUP BY fonte", (segunda,))}
     out = []
     for s in SITES:
         e = est.get(s["nome"])
         limite = e["limite"] if e and e["limite"] is not None else s.get("limite_gratis")
         out.append({**s, "ativa": bool(e["ativa"]) if e and e["ativa"] is not None else s["auto"],
                     "cadastrado": bool(e["cadastrado"]) if e else False,
-                    "limite": limite, "usadas": usadas.get(s["nome"], 0),
+                    "limite": limite, "usadas": (usadas_sem if s.get("periodo") == "semana" else usadas_mes).get(s["nome"], 0),
                     "espera": e["espera"] if e and e["espera"] is not None else (s.get("espera_gratis_h") or 0)})
     return out
 

@@ -483,8 +483,8 @@ function desenharCota() {
   $("cota").innerHTML = l.map(s => {
     const acabou = s.limite != null && s.usadas >= s.limite;
     return `<span class="pilula ${acabou ? "acabou" : ""}" title="${esc(s.politica)}">${iconeFonte(s.nome)} ${esc(s.nome)}: ` +
-      (s.limite != null ? `<b>${Math.max(0, s.limite - s.usadas)}</b> de ${s.limite} ${esc(s.unidade)} restantes` : `${s.usadas} usadas · defina a cota em Sites`) + `</span>`;
-  }).join("") + `<span class="rot">cota grátis do mês · gaste nos de maior 🎯</span>`;
+      (s.limite != null ? `<b>${Math.max(0, s.limite - s.usadas)}</b> de ${s.limite} ${esc(s.unidade)}/${s.periodo === "semana" ? "semana" : "mês"} restantes` : `${s.usadas} usadas · defina a cota em Sites`) + `</span>`;
+  }).join("") + `<span class="rot">cota grátis · gaste nos de maior 🎯</span>`;
 }
 function avisarNovos() {
   const bons = dados.filter(p => p.status === "NOVO" && chance(p).nota >= 70 && !bloqueado(p) && (p.propostas ?? 0) <= 8 && idadeH(p) - espera(p) < 3);
@@ -570,9 +570,9 @@ async function carregarSites() {
   $("sLista").innerHTML = sites.map(s => `<div class="cx site ${s.ativa ? "" : "off"}">
     <img src="${ico(s.dominio)}" alt="">
     <div class="nome"><b>${esc(s.nome)}</b> <span class="pilula ${s.auto ? "auto" : ""}">${s.auto ? "busca automática" : "↗ busca manual"}</span>
-      <div class="rot">${esc(s.obs)}</div><div class="rot pol">📋 ${esc(s.politica)}</div>${s.auto ? `<div class="rot">Espera do plano grátis: <input type="number" min="0" style="width:60px" data-espera="${esc(s.nome)}" value="${s.espera ?? 0}"> h após o anúncio pra poder propor (0 = sem espera)</div>` : ""}${s.unidade ? `<div class="rot">Cota grátis por mês:
+      <div class="rot">${esc(s.obs)}</div><div class="rot pol">📋 ${esc(s.politica)}</div><div class="rot pol">💳 ${esc(s.planos)}</div><div class="rot pol">🔎 Confiança: <b>${esc(s.confianca)}</b>${s.oficial ? ` · <a href="${esc(s.oficial)}" target="_blank" rel="noopener">fonte</a>` : ""}${s.oficial2 ? ` · <a href="${esc(s.oficial2)}" target="_blank" rel="noopener">fonte 2</a>` : ""} (confira na sua conta: as regras mudam)</div>${s.auto ? `<div class="rot">Espera do plano grátis: <input type="number" min="0" style="width:60px" data-espera="${esc(s.nome)}" value="${s.espera ?? 0}"> h após o anúncio pra poder propor (0 = sem espera)</div>` : ""}${s.unidade && s.auto ? `<div class="rot">Cota grátis por ${s.periodo === "semana" ? "semana" : "mês"}:
         <input type="number" min="0" style="width:70px" data-limite="${esc(s.nome)}" value="${s.limite ?? ""}" placeholder="?"> ${esc(s.unidade)}
-        · usadas este mês: <b>${s.usadas}</b> (conta quando você marca ✉ Candidatei)</div>` : ""}</div>
+        · usadas ${s.periodo === "semana" ? "esta semana" : "este mês"}: <b>${s.usadas}</b> (conta quando você marca ✉ Candidatei)</div>` : ""}</div>
     <label class="chave"><input type="checkbox" data-ativa="${esc(s.nome)}" ${s.ativa ? "checked" : ""}> ${s.auto ? "buscar" : "incluir"}</label>
     <a href="${esc(s.busca.replace("{q}", "python"))}" target="_blank" rel="noopener" data-busca="${esc(s.nome)}"><button>Ver vagas ↗</button></a>
     <a href="${esc(s.cadastro)}" target="_blank" rel="noopener"><button class="prim">Cadastro</button></a>
