@@ -5,316 +5,350 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bicos</title>
 <style>
-  :root { --fundo:#f3f4f6; --cartao:#fff; --texto:#1d2330; --suave:#667085; --borda:#e3e6eb; --realce:#f0f9fb;
-          --prim:#0e7490; --prim-claro:#e0f2f7; --ok:#047857; --ruim:#be123c; --amb:#b45309; }
-  @media (prefers-color-scheme: dark) {
-    :root { --fundo:#0f1318; --cartao:#181e26; --texto:#e6e9ef; --suave:#98a2b3; --borda:#28313c; --realce:#13252b;
-            --prim:#22a3c2; --prim-claro:#173540; --ok:#34d399; --ruim:#fb7185; --amb:#fbbf24; }
+  :root {
+    color-scheme: light dark;
+    --bg:light-dark(#f4f5f7,#0e1116); --surface:light-dark(#ffffff,#161b22); --surface-2:light-dark(#f8f9fb,#1b212a);
+    --line:light-dark(#e4e7ec,#272e39); --line-2:light-dark(#d0d5dd,#323a47);
+    --tx:light-dark(#101828,#e8ecf2); --tx-2:light-dark(#475467,#a3adbd); --tx-3:light-dark(#8a93a3,#778194);
+    --accent:light-dark(#2f5bea,#6c93ff); --accent-soft:light-dark(#e8eefe,#1c2a4d); --accent-tx:light-dark(#ffffff,#0b1020);
+    --ok:light-dark(#067647,#47c985); --ok-soft:light-dark(#e6f4ec,#12291d);
+    --warn:light-dark(#b54708,#f2a94e); --warn-soft:light-dark(#fef0dc,#2c2111);
+    --bad:light-dark(#b42318,#f2837a); --bad-soft:light-dark(#fde8e6,#2f1816);
+    --shadow:0 1px 2px rgba(16,24,40,.05);
+    --radius:10px;
   }
   * { box-sizing:border-box; }
-  body { margin:0; font:14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--fundo); color:var(--texto); }
-  input, select, textarea, button { font:inherit; color:inherit; background:var(--cartao);
-           border:1px solid var(--borda); border-radius:8px; padding:7px 10px; }
-  button { cursor:pointer; }
-  button:disabled { opacity:.5; cursor:default; }
-  .prim { background:var(--prim); color:#fff; border-color:var(--prim); font-weight:600; }
-
-  /* topo */
-  header { position:sticky; top:0; z-index:5; background:var(--cartao); border-bottom:1px solid var(--borda); }
-  .barra { max-width:1280px; margin:0 auto; padding:10px 16px; display:flex; gap:10px; align-items:center; }
-  .marca { font-weight:750; font-size:18px; white-space:nowrap; }
-  #busca { flex:1; min-width:0; }
-  #btnFiltros { display:none; }
-  .abas { max-width:1280px; margin:0 auto; padding:0 16px; display:flex; gap:4px; overflow-x:auto; }
-  .aba { border:0; border-bottom:2px solid transparent; border-radius:0; background:none; padding:8px 12px; color:var(--suave); white-space:nowrap; }
-  .aba.on { color:var(--prim); border-bottom-color:var(--prim); font-weight:600; }
-  .aba .n { font-size:12px; background:var(--fundo); border-radius:99px; padding:0 7px; margin-left:4px; }
-
-  /* corpo */
-  .corpo { max-width:1280px; margin:0 auto; padding:16px; display:grid; grid-template-columns:260px 1fr; gap:16px; align-items:start; }
-  aside { position:sticky; top:110px; background:var(--cartao); border:1px solid var(--borda); border-radius:12px; padding:14px;
-          max-height:calc(100vh - 126px); overflow:auto; }
-  .grupo { padding:10px 0; border-bottom:1px solid var(--borda); }
-  .grupo:first-child { padding-top:0; }
-  .grupo:last-child { border-bottom:0; }
-  .grupo h3 { margin:0 0 8px; font-size:12px; text-transform:uppercase; letter-spacing:.05em; color:var(--suave); }
-  .opc { display:flex; align-items:center; gap:8px; padding:3px 0; cursor:pointer; }
-  .opc .n { margin-left:auto; color:var(--suave); font-size:12px; }
-  .segm { display:flex; flex-wrap:wrap; gap:4px; }
-  .segm button { padding:4px 9px; font-size:13px; border-radius:99px; }
-  .segm button.on, .chip.on { background:var(--prim); color:#fff; border-color:var(--prim); }
-  .chips { display:flex; flex-wrap:wrap; gap:5px; }
-  .chip { font-size:12px; padding:2px 9px; border-radius:99px; border:1px solid var(--borda); background:var(--cartao); }
-  .chip .n { opacity:.7; margin-left:3px; }
-  aside input[type=number] { width:100%; }
-  .limpar { width:100%; margin-top:10px; }
-
-  .topolista { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
-  #contagem { color:var(--suave); }
-  #estado { color:var(--suave); font-size:12px; max-width:1280px; margin:0 auto; padding:0 16px 6px; }
-
-  /* cartões */
-  .cartao { background:var(--cartao); border:1px solid var(--borda); border-radius:12px; padding:14px 16px; margin-bottom:10px;
-            display:grid; grid-template-columns:1fr 190px; gap:16px; }
-  .cartao.INTERESSA { border-left:4px solid var(--amb); }
-  .cartao.CANDIDATEI { border-left:4px solid var(--ok); }
-  .cartao.DESCARTADO { opacity:.55; }
-  .titulo { font-weight:650; font-size:15.5px; color:var(--texto); text-decoration:none; }
-  .titulo:hover { color:var(--prim); }
-  .meta { color:var(--suave); font-size:12.5px; margin-top:3px; display:flex; flex-wrap:wrap; gap:4px 10px; }
-  .fonte { font-weight:700; color:var(--prim); display:inline-flex; align-items:center; gap:5px; }
-  .cartao.visto .titulo { opacity:.55; }
-  .nota { font-weight:700; padding:0 8px; border-radius:99px; background:var(--prim-claro); color:var(--prim); }
-  .nota.alta { background:var(--ok); color:#fff; } .nota.baixa { background:var(--fundo); color:var(--suave); }
-  .cota { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:10px; font-size:13px; }
-  .cota .pilula b { color:var(--texto); } .cota .acabou { border-color:var(--ruim); color:var(--ruim); }
-  .pol { margin-top:3px; }
-  .fav { width:16px; height:16px; border-radius:4px; vertical-align:middle; }
-  ul { margin:8px 0 0; padding-left:18px; }
-  li { margin:2px 0; }
-  .mais { background:none; border:0; padding:4px 0 0; color:var(--prim); font-size:13px; }
-  .completo { white-space:pre-line; margin-top:8px; padding:10px; background:var(--realce); border-radius:8px; font-size:13px; max-height:320px; overflow:auto; }
-  .tags { margin-top:9px; display:flex; gap:5px; flex-wrap:wrap; }
-  .tags .chip { cursor:pointer; }
-  .lado { border-left:1px solid var(--borda); padding-left:16px; display:flex; flex-direction:column; gap:9px; }
-  .num span { display:block; color:var(--suave); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
-  .num b { font-size:15px; }
-  .num small { display:block; color:var(--suave); }
-  .alto { color:var(--amb); }
-  .acoes { display:flex; gap:5px; flex-wrap:wrap; margin-top:auto; }
-  .acoes button { font-size:12.5px; padding:4px 9px; }
-  .acoes button.on { background:var(--prim-claro); border-color:var(--prim); color:var(--prim); font-weight:600; }
-
-  details.add { background:var(--cartao); border:1px dashed var(--borda); border-radius:12px; padding:10px 14px; margin-bottom:12px; }
-  details.add summary { cursor:pointer; font-weight:600; color:var(--prim); }
-  .linha { display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-  .linha > * { flex:1; min-width:160px; }
-  textarea { width:100%; min-height:100px; margin-top:8px; }
-  .vazio { text-align:center; color:var(--suave); padding:50px 0; }
-
   [hidden] { display:none !important; }
-  /* telas novas */
-  .views { display:flex; gap:2px; }
-  .views button { border:0; background:none; color:var(--suave); padding:6px 12px; border-radius:8px; }
-  .views button.on { background:var(--prim); color:#fff; }
-  .pagina { max-width:1000px; margin:0 auto; padding:16px; }
-  .cx { background:var(--cartao); border:1px solid var(--borda); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
-  .linha-cx { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .grade { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; }
-  .grade .cx { margin-bottom:0; } .grade { margin-bottom:12px; }
-  .rot { color:var(--suave); font-size:13px; }
-  .big { font-size:26px; font-weight:700; }
-  .barra-prog { height:14px; background:var(--fundo); border-radius:99px; overflow:hidden; border:1px solid var(--borda); margin-top:8px; }
-  .barra-prog i { display:block; height:100%; width:0; background:var(--prim); transition:width .4s; }
-  .barra-prog i.ok { background:var(--ok); }
-  table { width:100%; border-collapse:collapse; } td, th { padding:6px 8px; border-bottom:1px solid var(--borda); text-align:left; }
-  .hist { display:flex; gap:10px; align-items:flex-end; height:150px; margin-top:8px; }
-  .hist div { flex:1; text-align:center; font-size:11px; color:var(--suave); }
-  .hist b { display:block; background:var(--prim); border-radius:6px 6px 0 0; min-height:2px; }
-  .hist b.ok { background:var(--ok); }
-  .site { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-  .site img { width:28px; height:28px; border-radius:6px; }
-  .site .nome { flex:1; min-width:180px; }
-  .site.off .nome { opacity:.55; }
-  .resumo-pol { margin:8px 0; } .resumo-pol li { margin:4px 0; }
-  .sem { font-size:18px; } td.vered { min-width:260px; font-size:13px; }
-  .saldo.pos { color:var(--ok); font-weight:600; } .saldo.neg { color:var(--ruim); font-weight:600; }
-  .pilula { font-size:12px; padding:2px 9px; border-radius:99px; border:1px solid var(--borda); color:var(--suave); }
-  .pilula.auto { color:var(--ok); border-color:var(--ok); }
-  .chave { display:flex; align-items:center; gap:6px; cursor:pointer; }
-  @media (max-width: 860px) {
-    .views button { padding:6px 8px; font-size:13px; }
-    .barra { flex-wrap:wrap; }
-    .corpo { grid-template-columns:1fr; }
-    #btnFiltros { display:inline-block; }
-    aside { display:none; position:static; max-height:none; }
-    aside.aberto { display:block; }
-    .cartao { grid-template-columns:1fr; }
-    .lado { border-left:0; padding-left:0; border-top:1px solid var(--borda); padding-top:10px;
-            flex-direction:row; flex-wrap:wrap; gap:14px; }
-    .acoes { width:100%; }
-    .marca span { display:none; }
+  body { margin:0; background:var(--bg); color:var(--tx); font:14px/1.5 Inter, ui-sans-serif, system-ui, "Segoe UI", sans-serif; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3,p { margin:0; }
+  a { color:var(--accent); text-decoration:none; } a:hover { text-decoration:underline; }
+  .i { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+  .mut { color:var(--tx-2); } .mut3 { color:var(--tx-3); } .sm { font-size:12.5px; }
+
+  /* controles */
+  input, select, textarea { font:inherit; color:var(--tx); background:var(--surface); border:1px solid var(--line-2); border-radius:8px; padding:7px 10px; outline:none; }
+  input:focus, select:focus, textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  input[type=checkbox] { accent-color:var(--accent); width:15px; height:15px; padding:0; }
+  .btn { display:inline-flex; align-items:center; gap:7px; font:inherit; font-weight:500; color:var(--tx); background:var(--surface);
+         border:1px solid var(--line-2); border-radius:8px; padding:7px 12px; cursor:pointer; white-space:nowrap; }
+  .btn:hover { background:var(--surface-2); text-decoration:none; }
+  .btn.pri { background:var(--accent); border-color:var(--accent); color:var(--accent-tx); } .btn.pri:hover { filter:brightness(1.07); }
+  .btn.sm { padding:4px 10px; font-size:12.5px; } .btn:disabled { opacity:.55; cursor:default; }
+  .btn.ghost { border-color:transparent; background:none; color:var(--tx-2); } .btn.ghost:hover { background:var(--surface-2); }
+  .card { background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px; }
+
+  /* estrutura */
+  .app { display:grid; grid-template-columns:232px 1fr; min-height:100vh; }
+  .nav { background:var(--surface); border-right:1px solid var(--line); padding:18px 12px; display:flex; flex-direction:column; gap:20px; position:sticky; top:0; height:100vh; }
+  .brand { display:flex; align-items:center; gap:10px; font-weight:700; font-size:16px; padding:0 8px; }
+  .logo { width:28px; height:28px; border-radius:8px; background:var(--accent); color:var(--accent-tx); display:grid; place-items:center; font-weight:800; }
+  .nav nav { display:flex; flex-direction:column; gap:2px; }
+  .nav nav a { display:flex; align-items:center; gap:10px; padding:8px 10px; border-radius:8px; color:var(--tx-2); font-weight:500; }
+  .nav nav a:hover { background:var(--surface-2); text-decoration:none; color:var(--tx); }
+  .nav nav a.on { background:var(--accent-soft); color:var(--accent); }
+  .badge { margin-left:auto; font-size:11.5px; font-weight:600; background:var(--accent); color:var(--accent-tx); border-radius:99px; padding:0 7px; min-width:20px; text-align:center; }
+  .nav-foot { margin-top:auto; font-size:12.5px; color:var(--tx-2); padding:0 8px; }
+  .dot { display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--ok); margin-right:7px; }
+  .dot.busy { background:var(--warn); animation:pulso 1s infinite; } @keyframes pulso { 50% { opacity:.3; } }
+  .nav-foot details { margin-top:8px; } .nav-foot summary { cursor:pointer; color:var(--tx-3); } .nav-foot .det { margin-top:6px; line-height:1.7; }
+  main { padding:26px 32px 60px; max-width:1180px; width:100%; min-width:0; }
+  .ph { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
+  .ph h1 { font-size:22px; font-weight:700; letter-spacing:-.01em; } .ph .sub { color:var(--tx-2); margin-top:2px; }
+  .acts { display:flex; gap:8px; flex-wrap:wrap; }
+
+  /* projetos */
+  .toolbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:10px; }
+  .search { flex:1; min-width:220px; position:relative; display:block; }
+  .search .i { position:absolute; left:11px; top:50%; transform:translateY(-50%); color:var(--tx-3); }
+  .search input { width:100%; padding-left:34px; }
+  .cnt { background:var(--accent); color:var(--accent-tx); border-radius:99px; font-size:11px; padding:0 6px; font-weight:600; }
+  .filtros { margin-top:10px; display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:18px 24px; }
+  .filtros h4 { margin:0 0 8px; font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:var(--tx-3); font-weight:600; }
+  .filtros .full { grid-column:1/-1; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { display:inline-flex; align-items:center; gap:6px; font:inherit; font-size:12.5px; padding:3px 10px; border-radius:99px; border:1px solid var(--line-2); background:var(--surface); color:var(--tx-2); cursor:pointer; }
+  .chip:hover { border-color:var(--accent); } .chip.on { background:var(--accent-soft); border-color:var(--accent); color:var(--accent); font-weight:600; }
+  .chip .n { opacity:.65; } .chip img, .fav { width:15px; height:15px; border-radius:4px; vertical-align:middle; }
+  .tabs { display:flex; gap:2px; border-bottom:1px solid var(--line); margin:18px 0 12px; overflow-x:auto; }
+  .tab { font:inherit; background:none; border:0; border-bottom:2px solid transparent; padding:9px 12px; color:var(--tx-2); font-weight:500; cursor:pointer; white-space:nowrap; margin-bottom:-1px; }
+  .tab:hover { color:var(--tx); } .tab.on { color:var(--accent); border-bottom-color:var(--accent); }
+  .tab .n { color:var(--tx-3); font-weight:400; margin-left:5px; } .tab.on .n { color:var(--accent); }
+  .cota { display:flex; flex-wrap:wrap; align-items:center; gap:6px 18px; font-size:12.5px; color:var(--tx-2); margin:0 2px 12px; }
+  .cota .it { display:inline-flex; align-items:center; gap:7px; } .cota b { color:var(--tx); }
+  .mini-bar { width:46px; height:5px; border-radius:99px; background:var(--line); overflow:hidden; display:inline-block; }
+  .mini-bar i { display:block; height:100%; background:var(--accent); } .mini-bar.out i { background:var(--bad); }
+
+  .proj { display:grid; grid-template-columns:62px minmax(0,1fr); gap:14px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+          padding:14px 16px; margin-bottom:10px; box-shadow:var(--shadow); }
+  .proj:hover { border-color:var(--line-2); }
+  .proj.CANDIDATEI { border-left:3px solid var(--ok); } .proj.INTERESSA { border-left:3px solid var(--warn); } .proj.DESCARTADO { opacity:.55; }
+  .score { align-self:start; text-align:center; border-radius:10px; padding:7px 0 5px; background:var(--surface-2); border:1px solid var(--line); }
+  .score b { display:block; font-size:21px; line-height:1; font-weight:700; } .score small { font-size:10.5px; color:var(--tx-3); text-transform:uppercase; letter-spacing:.05em; }
+  .score.alta { background:var(--ok-soft); border-color:transparent; color:var(--ok); } .score.media { background:var(--warn-soft); border-color:transparent; color:var(--warn); }
+  .proj .topo { display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+  .titulo { overflow-wrap:anywhere; font-weight:600; font-size:15.5px; color:var(--tx); line-height:1.35; } .titulo:hover { color:var(--accent); text-decoration:none; }
+  .proj.visto .titulo { color:var(--tx-2); font-weight:500; }
+  .acoes { display:flex; gap:4px; flex:none; }
+  .ib { width:30px; height:30px; display:grid; place-items:center; border-radius:8px; border:1px solid var(--line-2); background:var(--surface); color:var(--tx-2); cursor:pointer; padding:0; }
+  .ib:hover { background:var(--surface-2); color:var(--tx); }
+  .ib.on.star { background:var(--warn-soft); border-color:var(--warn); color:var(--warn); } .ib.on.check { background:var(--ok-soft); border-color:var(--ok); color:var(--ok); }
+  .ib.on.x { background:var(--bad-soft); border-color:var(--bad); color:var(--bad); }
+  .meta { display:flex; flex-wrap:wrap; align-items:center; gap:4px 12px; color:var(--tx-2); font-size:12.5px; margin-top:4px; }
+  .meta .fonte { display:inline-flex; align-items:center; gap:6px; font-weight:600; color:var(--tx); }
+  .lock { display:inline-flex; align-items:center; gap:5px; color:var(--warn); background:var(--warn-soft); border-radius:99px; padding:0 8px; font-weight:600; }
+  .porque { font-size:12.5px; color:var(--tx-3); margin-top:6px; }
+  .res { margin:8px 0 0; padding-left:18px; color:var(--tx-2); } .res li { margin:2px 0; }
+  .completo { white-space:pre-line; margin-top:10px; padding:12px; background:var(--surface-2); border-radius:8px; font-size:13px; max-height:300px; overflow:auto; color:var(--tx-2); }
+  .tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:10px; }
+  .tags .chip { padding:1px 9px; font-size:12px; }
+  .stats { display:flex; flex-wrap:wrap; align-items:center; gap:6px 28px; margin-top:12px; padding-top:11px; border-top:1px solid var(--line); }
+  .stat span { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--tx-3); }
+  .stat b { font-weight:600; } .stat small { color:var(--tx-3); margin-left:6px; font-size:12px; } .stat b.alto { color:var(--warn); }
+  .stats .grow { margin-left:auto; }
+  .vazio { text-align:center; padding:56px 0; color:var(--tx-2); } .vazio .btn { margin-top:12px; }
+
+  /* metas */
+  .kpis { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:12px; margin-bottom:12px; }
+  .kpi .l { font-size:12px; color:var(--tx-2); } .kpi .v { font-size:24px; font-weight:700; letter-spacing:-.01em; margin-top:2px; }
+  .kpi.ok .v { color:var(--ok); }
+  .prog { height:10px; border-radius:99px; background:var(--line); overflow:hidden; margin-top:10px; } .prog i { display:block; height:100%; background:var(--accent); width:0; transition:width .4s; } .prog i.ok { background:var(--ok); }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+  .form { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; } .form > * { flex:1 1 140px; }
+  .hist { display:flex; gap:10px; align-items:flex-end; height:150px; margin-top:12px; }
+  .hist div { flex:1; text-align:center; font-size:11px; color:var(--tx-3); } .hist b { display:block; background:var(--accent); border-radius:6px 6px 0 0; min-height:2px; margin-top:3px; } .hist b.ok { background:var(--ok); }
+  table { width:100%; border-collapse:collapse; } th { text-align:left; font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--tx-3); font-weight:600; }
+  th, td { padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top; } tr:last-child td { border-bottom:0; }
+  .seg { display:inline-flex; background:var(--surface-2); border:1px solid var(--line); border-radius:9px; padding:3px; gap:2px; }
+  .seg button { font:inherit; border:0; background:none; border-radius:7px; padding:5px 12px; color:var(--tx-2); cursor:pointer; font-weight:500; }
+  .seg button.on { background:var(--surface); color:var(--tx); box-shadow:0 1px 2px rgba(0,0,0,.12); }
+
+  /* sites */
+  .srow { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; padding:12px 16px; }
+  .srow img.lg { width:30px; height:30px; border-radius:7px; }
+  .srow .info { flex:1; min-width:220px; }
+  .tag { font-size:11.5px; border-radius:99px; padding:1px 8px; border:1px solid var(--line-2); color:var(--tx-2); margin-left:6px; font-weight:500; }
+  .tag.auto { color:var(--ok); border-color:var(--ok); }
+  .chk { display:inline-flex; align-items:center; gap:6px; cursor:pointer; color:var(--tx-2); }
+  .srow details { flex-basis:100%; } .srow summary { cursor:pointer; color:var(--accent); font-size:12.5px; }
+  .det-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px 24px; margin-top:10px; font-size:13px; color:var(--tx-2); }
+  .det-grid h5 { margin:0 0 3px; font-size:11.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--tx-3); }
+  .det-grid input[type=number] { width:70px; padding:3px 6px; }
+  .sem { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; } .sem.verde { background:var(--ok); } .sem.amarelo { background:var(--warn); } .sem.vermelho { background:var(--bad); }
+  .pol-sum li { margin:5px 0; } .vered { min-width:250px; font-size:13px; }
+  .saldo.pos { color:var(--ok); font-weight:600; } .saldo.neg { color:var(--bad); font-weight:600; }
+  dialog { border:1px solid var(--line-2); border-radius:12px; padding:20px; width:min(560px,92vw); background:var(--surface); color:var(--tx); }
+  dialog::backdrop { background:rgba(10,14,22,.55); } dialog h3 { margin-bottom:12px; } dialog .form > * { flex:1 1 100%; } dialog textarea { min-height:110px; }
+
+  @media (max-width: 900px) {
+    .app { grid-template-columns:minmax(0,1fr); } .app > * { min-width:0; } .nav { position:static; height:auto; flex-direction:row; align-items:center; padding:10px 14px; gap:10px; overflow-x:auto; }
+    .nav nav { flex-direction:row; } .nav-foot { display:none; } main { padding:18px 14px 50px; }
+    .proj { grid-template-columns:minmax(0,1fr); } .score { display:flex; gap:8px; align-items:baseline; justify-content:flex-start; padding:4px 10px; width:max-content; } .score b { font-size:16px; }
+    .grid2 { grid-template-columns:1fr; }
   }
 </style>
 </head>
 <body>
-<header>
-  <div class="barra">
-    <div class="marca">🔎 <span>Bicos</span></div>
-    <nav class="views" id="views">
-      <button data-view="Projetos" class="on">Projetos</button>
-      <button data-view="Metas">💰 Metas &amp; ganhos</button>
-      <button data-view="Sites">🌐 Sites &amp; cadastros</button>
-      <button data-view="Politicas">📋 Políticas</button>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 0 0-15-6.7L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/><path d="M16 16h5v5"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-15-6.7L3 13"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></symbol>
+  <symbol id="i-brief" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
+  <symbol id="i-trend" viewBox="0 0 24 24"><path d="m3 17 6-6 4 4 8-8"/><path d="M14 7h7v7"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+</svg>
+
+<div class="app">
+  <aside class="nav">
+    <div class="brand"><span class="logo">B</span>Bicos</div>
+    <nav id="nav">
+      <a href="#/projetos" data-r="projetos"><svg class="i"><use href="#i-brief"/></svg>Projetos<span class="badge" id="nbChance" hidden></span></a>
+      <a href="#/metas" data-r="metas"><svg class="i"><use href="#i-trend"/></svg>Metas e ganhos</a>
+      <a href="#/sites" data-r="sites"><svg class="i"><use href="#i-globe"/></svg>Sites</a>
     </nav>
-    <input id="busca" placeholder="Buscar no título e na descrição (ex.: python automação)…">
-    <button id="btnFiltros">Filtros</button>
-    <button id="btnAvisos" title="Avisar quando surgir projeto com nota alta e poucas propostas">🔔 Avisos</button>
-    <button class="prim" id="btnColetar">Buscar agora</button>
-  </div>
-  <div class="abas" id="abas"></div>
-  <div id="estado"></div>
-</header>
-
-<div class="pagina" id="vMetas" hidden>
-  <div class="cx linha-cx">
-    <button id="mPrev">◀</button><input type="month" id="mMes"><button id="mNext">▶</button>
-    <span style="flex:1"></span>
-    <label>Meta do mês R$ <input id="mMeta" type="number" min="0" step="50" style="width:110px"></label>
-    <button class="prim" id="mSalvar">Salvar meta</button>
-  </div>
-  <div class="grade">
-    <div class="cx"><div class="rot">Ganhei</div><div class="big" id="mTotal">R$ 0</div></div>
-    <div class="cx"><div class="rot">Falta pra meta</div><div class="big" id="mFalta">—</div></div>
-    <div class="cx"><div class="rot">Por dia até o fim do mês</div><div class="big" id="mDia">—</div></div>
-  </div>
-  <div class="cx"><div class="linha-cx" style="justify-content:space-between"><b>Progresso</b><span id="mPct" class="rot"></span></div>
-    <div class="barra-prog"><i id="mBar"></i></div></div>
-  <div class="cx"><b>Registrar ganho</b>
-    <div class="linha-cx" style="margin-top:8px">
-      <input type="date" id="gData"><input id="gValor" type="number" min="0" step="0.01" placeholder="Valor R$" style="width:120px">
-      <input id="gPlat" list="plats" placeholder="Plataforma/cliente" style="width:170px"><datalist id="plats"></datalist>
-      <input id="gDesc" placeholder="O que foi feito" style="flex:1;min-width:150px">
-      <button class="prim" id="gAdd">Adicionar</button>
-    </div></div>
-  <div class="cx"><b>Ganhos do mês</b><table id="gTab"></table></div>
-  <div class="cx"><b>Histórico (últimos meses)</b><div class="hist" id="mHist"></div></div>
-</div>
-
-<div class="pagina" id="vSites" hidden>
-  <div class="cx linha-cx">
-    <button class="prim" id="sAbrirCadastros">🚀 Abrir cadastro dos que faltam</button>
-    <button id="sAbrirBuscas">↗ Abrir busca nos sites ↗ ligados</button>
-    <span class="rot">A busca usa o texto do campo de busca (ou "python"). O navegador pode pedir pra liberar pop-ups.</span>
-  </div>
-  <div class="rot" style="margin:0 4px">Ligado = o painel busca esse site sozinho. Os marcados com ↗ bloqueiam robô: abrem a busca deles no navegador.</div>
-  <div class="cx" id="redes">
-    <b>🔎 Redes sociais: buscas prontas</b>
-    <div class="rot">Eu não consigo ler essas redes sozinho (exigem login e bloqueiam robô), mas cada botão abre a busca já montada, com os posts mais recentes. Troque o termo se quiser.</div>
-    <div class="linha-cx" style="margin:8px 0"><label>Termo: <input id="rQ" value="desenvolvedor" style="width:200px"></label>
-      <button class="prim" id="rTodas">Abrir todas</button></div>
-    <div id="rLista"></div>
-  </div>
-  <div id="sLista"></div>
-</div>
-
-<div class="pagina" id="vPoliticas" hidden>
-  <div class="cx">
-    <b>Resumo rápido</b> <span class="rot">(minha avaliação a partir das regras que encontrei; confira na sua conta)</span>
-    <ul class="resumo-pol">
-      <li><b>Comece 100% grátis.</b> Nenhum site exige pagar pra você começar a propor.</li>
-      <li><b>99Freelas é onde pagar mais muda o jogo:</b> as primeiras 24 h dos projetos são exclusivas de assinantes, quando há menos concorrência.</li>
-      <li><b>Freelancer.com tem o upgrade mais barato</b> (Basic ~US$ 5 = 50 bids em vez de 6) se você já tiver proposta pronta.</li>
-      <li><b>Workana e Upwork:</b> só invista depois de converter propostas em clientes; mais cota não ajuda com taxa de resposta baixa.</li>
-      <li><b>GetNinjas</b> não funciona sem pagar e <b>Toptal</b> exige experiência: fora do plano por enquanto.</li>
-    </ul>
-    <div class="rot">🟢 grátis basta por enquanto · 🟡 pagar pode compensar · 🔴 só com orçamento / não é pra agora</div>
-  </div>
-  <div class="cx"><div style="overflow-x:auto"><table id="pTab"></table></div></div>
-  <div class="cx">
-    <b>Vale pagar o plano? Calculadora</b>
-    <div class="linha-cx" style="margin:8px 0">
-      <label>Quanto você espera faturar por mês no site: R$ <input id="pFat" type="number" min="0" step="100" style="width:120px"></label>
-      <span class="rot">(já vem com a sua meta do mês)</span>
+    <div class="nav-foot">
+      <button class="btn ghost sm" id="btnTema" style="margin:0 0 10px -8px">Tema: automático</button>
+      <div><span class="dot" id="dot"></span><span id="estadoTxt">Carregando…</span></div>
+      <details><summary>Detalhes da busca</summary><div class="det" id="estadoDet"></div></details>
     </div>
-    <div id="pCalc"></div>
-    <div class="rot" style="margin-top:6px">Considera só a economia na comissão. Os benefícios (mais propostas, acesso nas primeiras 24 h) valem além disso. Dólar a R$ 5,50 (aproximado).</div>
-  </div>
-</div>
-
-<div class="corpo" id="vProjetos">
-  <aside id="filtros">
-    <div class="grupo">
-      <h3>Site</h3>
-      <div id="fFonte"></div>
-    </div>
-    <div class="grupo">
-      <h3>Publicado</h3>
-      <div class="segm" data-f="dias">
-        <button data-v="0">Qualquer</button><button data-v="1">24 h</button>
-        <button data-v="3">3 dias</button><button data-v="7">7 dias</button>
-      </div>
-    </div>
-    <div class="grupo">
-      <h3>Valor mínimo (R$)</h3>
-      <input type="number" id="fValor" min="0" step="50" placeholder="ex.: 500">
-      <label class="opc" style="margin-top:6px"><input type="checkbox" id="fComValor"> Só com valor informado</label>
-    </div>
-    <div class="grupo">
-      <h3>Tempo estimado</h3>
-      <div class="segm" data-f="horas">
-        <button data-v="0">Qualquer</button><button data-v="8">até 8 h</button>
-        <button data-v="20">até 20 h</button><button data-v="40">até 40 h</button><button data-v="80">até 80 h</button>
-      </div>
-    </div>
-    <div class="grupo">
-      <h3>Concorrência</h3>
-      <div class="segm" data-f="propostas">
-        <button data-v="0">Qualquer</button><button data-v="10">≤ 10 propostas</button>
-        <button data-v="30">≤ 30</button><button data-v="60">≤ 60</button>
-      </div>
-    </div>
-    <div class="grupo">
-      <h3>Tecnologias</h3>
-      <div class="chips" id="fTec"></div>
-    </div>
-    <button class="limpar" id="btnLimpar">Limpar filtros</button>
   </aside>
 
   <main>
-    <details class="add">
-      <summary>+ Adicionar projeto de outro site (link ou texto)</summary>
-      <div class="linha">
-        <input id="url" placeholder="Cole o link do projeto">
-        <button id="btnLink" style="flex:0">Ler link</button>
+    <!-- ============ PROJETOS ============ -->
+    <section id="pg-projetos">
+      <header class="ph">
+        <div><h1>Projetos</h1><p class="sub" id="subProj"></p></div>
+        <div class="acts">
+          <button class="btn" id="btnAvisos"><svg class="i"><use href="#i-bell"/></svg><span>Avisos</span></button>
+          <button class="btn pri" id="btnColetar"><svg class="i"><use href="#i-refresh"/></svg><span>Buscar agora</span></button>
+        </div>
+      </header>
+
+      <div class="card toolbar">
+        <label class="search"><svg class="i"><use href="#i-search"/></svg><input id="busca" placeholder="Buscar por título, descrição ou tecnologia"></label>
+        <select id="ordem" aria-label="Ordenar">
+          <option value="chance">Melhor chance</option><option value="data">Mais recentes</option><option value="valor">Maior valor</option>
+          <option value="valorhora">Melhor R$/hora</option><option value="horas">Mais rápidos</option><option value="propostas">Menos concorridos</option>
+        </select>
+        <button class="btn" id="btnFiltros"><svg class="i"><use href="#i-filter"/></svg>Filtros<span class="cnt" id="cntFiltros" hidden></span></button>
+        <button class="btn" id="btnAdd"><svg class="i"><use href="#i-plus"/></svg>Adicionar</button>
       </div>
-      <div class="linha">
-        <input id="tTitulo" placeholder="Título (opcional)">
-        <input id="tOrc" placeholder="Valor (ex.: R$ 500 - R$ 1.000)">
+
+      <div class="card filtros" id="filtros" hidden>
+        <div class="full"><h4>Site</h4><div class="chips" id="fFonte"></div></div>
+        <div><h4>Publicado</h4><div class="chips" data-f="dias"><button class="chip" data-v="0">Qualquer</button><button class="chip" data-v="1">24 h</button><button class="chip" data-v="3">3 dias</button><button class="chip" data-v="7">7 dias</button></div></div>
+        <div><h4>Tempo estimado</h4><div class="chips" data-f="horas"><button class="chip" data-v="0">Qualquer</button><button class="chip" data-v="8">até 8 h</button><button class="chip" data-v="20">até 20 h</button><button class="chip" data-v="40">até 40 h</button><button class="chip" data-v="80">até 80 h</button></div></div>
+        <div><h4>Concorrência</h4><div class="chips" data-f="propostas"><button class="chip" data-v="0">Qualquer</button><button class="chip" data-v="10">até 10</button><button class="chip" data-v="30">até 30</button><button class="chip" data-v="60">até 60</button></div></div>
+        <div><h4>Valor mínimo (R$)</h4><input type="number" id="fValor" min="0" step="50" placeholder="ex.: 500" style="width:130px">
+          <label class="chk" style="margin-left:10px"><input type="checkbox" id="fComValor"> só com valor</label></div>
+        <div class="full"><h4>Tecnologias</h4><div class="chips" id="fTec"></div></div>
+        <div class="full"><button class="btn sm" id="btnLimpar">Limpar filtros</button></div>
       </div>
-      <textarea id="tTexto" placeholder="Se o site bloquear a leitura automática, cole aqui o texto do projeto…"></textarea>
-      <div class="linha"><button id="btnTexto" style="flex:0">Resumir texto</button><span id="msgAdd" class="meta"></span></div>
-    </details>
-    <div id="cota" class="cota"></div>
-    <div class="topolista">
-      <span id="contagem"></span>
-      <select id="ordem">
-        <option value="chance">Melhor chance</option><option value="data">Mais recentes</option>
-        <option value="valor">Maior valor</option>
-        <option value="valorhora">Melhor R$/hora</option>
-        <option value="horas">Mais rápidos</option>
-        <option value="propostas">Menos concorridos</option>
-      </select>
-    </div>
-    <div id="lista"></div>
+
+      <div class="tabs" id="abas"></div>
+      <div class="cota" id="cota"></div>
+      <div id="lista"></div>
+    </section>
+
+    <!-- ============ METAS ============ -->
+    <section id="pg-metas" hidden>
+      <header class="ph">
+        <div><h1>Metas e ganhos</h1><p class="sub">Quanto você quer faturar com freelas e quanto já entrou.</p></div>
+        <div class="acts">
+          <button class="btn" id="mPrev" aria-label="Mês anterior"><svg class="i"><use href="#i-left"/></svg></button>
+          <input type="month" id="mMes">
+          <button class="btn" id="mNext" aria-label="Próximo mês"><svg class="i"><use href="#i-right"/></svg></button>
+        </div>
+      </header>
+      <div class="kpis">
+        <div class="card kpi"><div class="l">Ganhei no mês</div><div class="v" id="mTotal">R$ 0</div></div>
+        <div class="card kpi"><div class="l">Meta do mês</div><div class="v" id="mMetaV">—</div></div>
+        <div class="card kpi"><div class="l">Falta pra meta</div><div class="v" id="mFalta">—</div></div>
+        <div class="card kpi"><div class="l">Por dia até o fim do mês</div><div class="v" id="mDia">—</div></div>
+      </div>
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+          <b>Progresso</b><span id="mPct" class="mut sm"></span></div>
+        <div class="prog"><i id="mBar"></i></div>
+        <div class="form" style="margin-top:14px;align-items:center"><span class="mut" style="flex:0 0 auto">Meta deste mês: R$</span>
+          <input id="mMeta" type="number" min="0" step="50" style="flex:0 0 130px"><button class="btn pri" id="mSalvar" style="flex:0 0 auto">Salvar meta</button></div>
+      </div>
+      <div class="grid2">
+        <div class="card"><b>Registrar ganho</b>
+          <div class="form">
+            <input type="date" id="gData"><input id="gValor" type="number" min="0" step="0.01" placeholder="Valor (R$)">
+            <input id="gPlat" list="plats" placeholder="Plataforma ou cliente"><datalist id="plats"></datalist>
+            <input id="gDesc" placeholder="O que foi feito" style="flex-basis:100%">
+            <button class="btn pri" id="gAdd" style="flex:0 0 auto"><svg class="i"><use href="#i-plus"/></svg>Adicionar</button>
+          </div></div>
+        <div class="card"><b>Últimos meses</b><div class="hist" id="mHist"></div></div>
+      </div>
+      <div class="card" style="margin-top:12px"><b>Ganhos do mês</b><div style="overflow-x:auto"><table id="gTab"></table></div></div>
+    </section>
+
+    <!-- ============ SITES ============ -->
+    <section id="pg-sites" hidden>
+      <header class="ph">
+        <div><h1>Sites</h1><p class="sub">Onde buscar, o que cada plano grátis permite e atalhos para cadastro.</p></div>
+        <div class="seg" id="segSites"><button data-s="cadastros">Cadastros e busca</button><button data-s="politicas">Políticas e planos</button><button data-s="redes">Redes sociais</button></div>
+      </header>
+
+      <div id="sub-cadastros">
+        <div class="card" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+          <button class="btn pri" id="sAbrirCadastros"><svg class="i"><use href="#i-ext"/></svg>Abrir cadastro dos que faltam</button>
+          <button class="btn" id="sAbrirBuscas"><svg class="i"><use href="#i-ext"/></svg>Abrir busca nos sites manuais</button>
+          <span class="mut sm">"Buscar" liga o site na busca automática do painel. Os manuais bloqueiam robô: abrem a busca no navegador.</span>
+        </div>
+        <div id="sLista"></div>
+      </div>
+
+      <div id="sub-politicas" hidden>
+        <div class="card" style="margin-bottom:12px">
+          <b>Resumo</b> <span class="mut sm">(minha avaliação a partir das regras que encontrei; confira na sua conta)</span>
+          <ul class="pol-sum">
+            <li><b>Comece 100% grátis.</b> Nenhum site exige pagar pra você começar a propor.</li>
+            <li><b>99Freelas</b> é onde pagar mais muda o jogo: as primeiras 24 h dos projetos são exclusivas de assinantes, quando há menos concorrência.</li>
+            <li><b>Freelancer.com</b> tem o upgrade mais barato (Basic ~US$ 5 = 50 bids em vez de 6), se você já tiver proposta pronta.</li>
+            <li><b>Workana e Upwork:</b> só invista depois de converter propostas em clientes; mais cota não ajuda com taxa de resposta baixa.</li>
+            <li><b>GetNinjas</b> não funciona sem pagar e <b>Toptal</b> exige experiência: fora do plano por enquanto.</li>
+          </ul>
+          <div class="mut sm"><span class="sem verde"></span>grátis basta &nbsp; <span class="sem amarelo"></span>pagar pode compensar &nbsp; <span class="sem vermelho"></span>só com orçamento / não é pra agora</div>
+        </div>
+        <div class="card" style="margin-bottom:12px;overflow-x:auto"><table id="pTab"></table></div>
+        <div class="card">
+          <b>Vale pagar o plano? Calculadora</b>
+          <div class="form" style="align-items:center"><span class="mut" style="flex:0 0 auto">Faturamento esperado por mês no site: R$</span>
+            <input id="pFat" type="number" min="0" step="100" style="flex:0 0 130px"><span class="mut sm" style="flex:0 0 auto">(já vem com a sua meta do mês)</span></div>
+          <div id="pCalc" style="overflow-x:auto"></div>
+          <div class="mut sm" style="margin-top:8px">Considera só a economia na comissão. Benefícios como mais propostas e acesso nas primeiras 24 h valem além disso. Dólar a R$ 5,50 (aproximado).</div>
+        </div>
+      </div>
+
+      <div id="sub-redes" hidden>
+        <div class="card">
+          <b>Buscas prontas nas redes sociais</b>
+          <p class="mut sm" style="margin:4px 0 12px">O painel não consegue ler essas redes sozinho (exigem login e bloqueiam robô). Cada botão abre a busca já montada, com os posts mais recentes.</p>
+          <div class="form" style="align-items:center"><span class="mut" style="flex:0 0 auto">Termo:</span><input id="rQ" value="desenvolvedor" style="flex:0 0 220px">
+            <button class="btn pri" id="rTodas" style="flex:0 0 auto">Abrir todas</button></div>
+          <div id="rLista"></div>
+        </div>
+      </div>
+    </section>
   </main>
 </div>
 
+<dialog id="dlgAdd">
+  <h3>Adicionar projeto de outro site</h3>
+  <p class="mut sm" style="margin-bottom:10px">Cole o link (o painel tenta ler a página) ou, se o site bloquear, cole o texto do projeto.</p>
+  <div class="form">
+    <input id="url" placeholder="Link do projeto"><button class="btn" id="btnLink" style="flex:0 0 auto">Ler link</button>
+    <input id="tTitulo" placeholder="Título (opcional)"><input id="tOrc" placeholder="Valor (ex.: R$ 500 - R$ 1.000)">
+    <textarea id="tTexto" placeholder="Texto do projeto…"></textarea>
+    <button class="btn pri" id="btnTexto" style="flex:0 0 auto">Resumir texto</button><span id="msgAdd" class="mut sm" style="flex:1 1 100%"></span>
+  </div>
+  <div style="text-align:right;margin-top:6px"><button class="btn ghost" id="btnFecharAdd">Fechar</button></div>
+</dialog>
+
 <script>
 const $ = (id) => document.getElementById(id);
-const COTACAO_USD = 5.5;   // só para comparar valores (o Workana vem em dólar)
-const ABAS = [["CHANCE","🎯 Melhores chances"],["LIBERA","⏳ Libera em breve"],["ATIVOS","Para ver"],["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartados"],["","Todos"]];
-const ACOES = [["INTERESSA","⭐ Interessa"],["CANDIDATEI","✉ Candidatei"],["DESCARTADO","✖ Descartar"],["NOVO","↺ Voltar"]];
+const ic = (n, cls = "") => `<svg class="i ${cls}"><use href="#i-${n}"/></svg>`;
+const COTACAO_USD = 5.5;   // só para comparar valores (Workana e Freelancer vêm em dólar)
+const ABAS = [["CHANCE","Melhores chances"],["LIBERA","Libera em breve"],["ATIVOS","Para ver"],["INTERESSA","Interessa"],["CANDIDATEI","Candidatei"],["DESCARTADO","Descartados"],["","Todos"]];
+const ACOES = [["INTERESSA","star","Interessa"],["CANDIDATEI","check","Candidatei"],["DESCARTADO","x","Descartar"]];
 const PADRAO = {aba:"CHANCE", busca:"", fontes:[], dias:0, valor:"", comValor:false, horas:0, propostas:0, tecs:[], ordem:"chance"};
-let dados = [], abertos = new Set();
-// ícone do site de onde veio o projeto (favicon pelo domínio; "Colado"/"Link" ficam sem)
 const DOMINIOS = {"99Freelas":"99freelas.com.br", "Workana":"workana.com", "Freelancer.com":"freelancer.com", "Reddit r/forhire":"reddit.com"};
-const iconeFonte = (nome) => DOMINIOS[nome]
-  ? `<img class="fav" src="https://www.google.com/s2/favicons?domain=${DOMINIOS[nome]}&sz=64" alt="">` : "";
+const ico = (d) => `https://www.google.com/s2/favicons?domain=${d}&sz=64`;
+const iconeFonte = (nome) => DOMINIOS[nome] ? `<img class="fav" src="${ico(DOMINIOS[nome])}" alt="">` : "";
+let dados = [], sites = [], abertos = new Set(), mes = new Date().toISOString().slice(0, 7);
 let f = (() => { try { return {...PADRAO, ...JSON.parse(localStorage.getItem("bicos_filtros2") || "{}")}; } catch { return {...PADRAO}; } })();
 const salvar = () => { try { localStorage.setItem("bicos_filtros2", JSON.stringify(f)); } catch {} };
 
 const din = (v, m) => v == null ? null : v.toLocaleString("pt-BR", {style:"currency", currency:m || "BRL", maximumFractionDigits:0});
+const brl = (n) => (n || 0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const hoje = () => new Date().toISOString().slice(0, 10);
+const get = (url) => fetch(url).then(r => r.json());
+async function post(url, corpo) {
+  const r = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(corpo || {})});
+  return {ok: r.ok, ...(await r.json())};
+}
 const reais = (p) => p.valor_max == null ? null : p.valor_max * (p.moeda === "USD" ? COTACAO_USD : 1);
 const tecs = (p) => p.tecnologias ? p.tecnologias.split(", ") : [];
 const idadeH = (p) => p.publicado_em ? (Date.now() - new Date(p.publicado_em)) / 3600000 : 1e9;
 
 function valor(p) {
-  if (p.valor_max == null) return [p.orcamento && p.orcamento.startsWith("A combinar") ? "A combinar" : (p.orcamento || "—"), ""];
+  if (p.valor_max == null) return [p.orcamento && p.orcamento.startsWith("A combinar") ? "A combinar" : (p.orcamento || "Não informado"), ""];
   const m = p.moeda || "BRL";
-  const txt = !p.valor_min ? `até ${din(p.valor_max, m)}` : p.valor_max !== p.valor_min
-    ? `${din(p.valor_min, m)} – ${din(p.valor_max, m)}` : din(p.valor_min, m);
+  const txt = !p.valor_min ? `até ${din(p.valor_max, m)}` : p.valor_max !== p.valor_min ? `${din(p.valor_min, m)} – ${din(p.valor_max, m)}` : din(p.valor_min, m);
   return [txt, m === "USD" ? `≈ ${din(reais(p))}` : ""];
 }
 function tempo(p) {
@@ -329,7 +363,55 @@ function quando(p) {
   return `há ${Math.round(h / 24)} d`;
 }
 
-// filtros que não são a aba (as contagens das abas usam todos os outros)
+/* ---------- chance de valer a pena ---------- */
+const MEU_STACK = ["Python","Django","Flask","FastAPI","Node","JavaScript","TypeScript","React","Angular","Next.js","SQL","MySQL","PostgreSQL",
+  "Selenium","Playwright","Scraping","API","Bot","Telegram","WhatsApp","HTML","CSS","Excel","VBA"];
+const ARMADILHA = /sem remunera|n[aã]o remunerad|permuta|comiss[aã]o|commission|unpaid|teste gr[aá]tis|free trial|gratuit|sociedade|em troca de|exposi[cç][aã]o|volunt[aá]ri/i;
+const SUA_AREA = /python|node|react|angular|javascript|typescript|\bsql\b|\bapi\b|\bbot\b|automa|scrap|\bsite\b|website|\bweb\b|sistema|\bapp\b|software|programa|desenvolvedor|developer|backend|frontend|full.?stack|excel|vba|planilha|dashboard|suporte|support|atendimento|chatbot|integra/i;
+const DESC_FORTE = /python|node\.?js|\breact\b|angular|javascript|typescript|\bsql\b|automation|scraping|chatbot|\bapi\b|developer|programmer|software engineer|desenvolvedor|programador/i;
+const NAO_DEV = /partnership|business development|sales|lead generation|marketing|recruit|virtual assistant|administrative|data entry|telemarket|call center|caller|\bseo\b|copywrit|translat|social media|bookkeep|accountant|designer|video edit/i;
+const lerSet = (k) => { try { return new Set(JSON.parse(localStorage.getItem(k) || "[]")); } catch { return new Set(); } };
+const gravarSet = (k, s) => { try { localStorage.setItem(k, JSON.stringify([...s].slice(-2000))); } catch {} };
+const visitados = lerSet("bicos_visitados"), notificados = lerSet("bicos_notificados");
+function visitar(id) { visitados.add(id); gravarSet("bicos_visitados", visitados); }
+
+// plano grátis de alguns sites só deixa propor depois de X h do anúncio (ex.: 99Freelas = 24 h)
+const siteDe = (p) => sites.find(x => x.nome === p.fonte);
+const espera = (p) => (siteDe(p) || {}).espera || 0;
+const liberaEm = (p) => Math.max(0, espera(p) - idadeH(p));
+const bloqueado = (p) => espera(p) > 0 && idadeH(p) < espera(p);
+const fmtH = (h) => h < 1 ? Math.max(1, Math.round(h * 60)) + " min" : Math.round(h) + " h";
+function chance(p) {
+  const m = []; let n = 0;
+  if (ARMADILHA.test(`${p.titulo} ${(p.descricao || "").slice(0, 400)}`)) return {nota: 0, motivos: ["possível armadilha (sem pagamento, permuta ou comissão)"]};
+  const pr = p.propostas;
+  if (pr == null) n += 15;
+  else if (pr <= 3) { n += 35; m.push("quase sem concorrência"); }
+  else if (pr <= 10) { n += 30; m.push("poucas propostas"); }
+  else if (pr <= 20) n += 20;
+  else if (pr <= 40) n += 8; else m.push("muito concorrido");
+  const h = Math.max(0, idadeH(p) - espera(p));   // plano grátis: conta a partir da liberação
+  if (h < 1) { n += 25; m.push("acabou de sair"); } else if (h < 3) { n += 22; m.push("publicado há poucas horas"); }
+  else if (h < 6) n += 18; else if (h < 24) n += 12; else if (h < 72) n += 5; else m.push("antigo");
+  const r = reais(p);
+  if (r != null && p.horas_max) {
+    const rh = r / p.horas_max;
+    if (rh >= 60) { n += 20; m.push("paga bem pelo tempo"); } else if (rh >= 40) n += 15; else if (rh >= 25) n += 10; else { n += 4; m.push("paga pouco pelo tempo"); }
+  } else n += 6;
+  const hr = /([\d.,]+)\s*[–-]\s*([\d.,]+)\s*\/h/i.exec(p.orcamento || "");   // projeto por hora: "USD 2–8/h"
+  if (hr) {
+    const alto = Number(hr[2].replace(/\./g, "").replace(",", ".")) * (/USD|EUR|GBP/.test(p.orcamento) ? COTACAO_USD : 1);
+    if (alto < 25) { n = Math.min(n, 45); m.push("paga muito pouco por hora"); } else if (alto >= 60) { n += 8; m.push("bom valor por hora"); }
+  }
+  const casam = tecs(p).filter(t => MEU_STACK.includes(t)).length;
+  if (casam >= 2) { n += 15; m.push("bate com seu stack"); } else if (casam === 1) n += 9; else if (!tecs(p).length) n += 4;
+  if (!casam && (NAO_DEV.test(p.titulo) || !(SUA_AREA.test(p.titulo) || DESC_FORTE.test((p.descricao || "").slice(0, 400))))) { n = Math.min(n, 40); m.push("fora da sua área"); }
+  const s = siteDe(p);
+  if (s && s.limite != null && s.usadas >= s.limite) { n = Math.min(n, 30); m.push("cota grátis esgotada"); }
+  return {nota: Math.min(100, Math.round(n)), motivos: m};
+}
+
+/* ---------- lista de projetos ---------- */
 function passa(p, ignorar) {
   if (ignorar !== "fonte" && f.fontes.length && !f.fontes.includes(p.fonte)) return false;
   if (f.dias && idadeH(p) > f.dias * 24) return false;
@@ -344,90 +426,91 @@ function passa(p, ignorar) {
   }
   return true;
 }
-const naAba = (p, aba) => aba === "CHANCE" ? (["NOVO","INTERESSA"].includes(p.status) && chance(p).nota >= 55 && !bloqueado(p)) : aba === "LIBERA" ? (["NOVO","INTERESSA"].includes(p.status) && chance(p).nota >= 55 && bloqueado(p)) : aba === "ATIVOS" ? ["NOVO","INTERESSA"].includes(p.status) : !aba || p.status === aba;
-
+const ativo = (p) => ["NOVO", "INTERESSA"].includes(p.status);
+const naAba = (p, aba) => aba === "CHANCE" ? ativo(p) && chance(p).nota >= 55 && !bloqueado(p)
+  : aba === "LIBERA" ? ativo(p) && chance(p).nota >= 55 && bloqueado(p)
+  : aba === "ATIVOS" ? ativo(p) : !aba || p.status === aba;
 function contar(lista, chave) {
-  const c = {};
-  lista.forEach(p => (chave(p) || []).forEach(v => c[v] = (c[v] || 0) + 1));
+  const c = {}; lista.forEach(p => (chave(p) || []).forEach(v => c[v] = (c[v] || 0) + 1));
   return Object.entries(c).sort((a, b) => b[1] - a[1]);
 }
 
 function desenharFiltros() {
   const base = dados.filter(p => naAba(p, f.aba));
-  $("fFonte").innerHTML = contar(base.filter(p => passa(p, "fonte")), p => [p.fonte]).map(([v, n]) =>
-    `<label class="opc"><input type="checkbox" value="${esc(v)}" ${f.fontes.includes(v) ? "checked" : ""}> ${iconeFonte(v)}${esc(v)}<span class="n">${n}</span></label>`).join("")
-    || `<span class="meta">—</span>`;
+  const fontes = contar(base.filter(p => passa(p, "fonte")), p => [p.fonte]);
+  f.fontes.filter(x => !fontes.some(([v]) => v === x)).forEach(x => fontes.push([x, 0]));
+  $("fFonte").innerHTML = fontes.map(([v, n]) => `<button class="chip ${f.fontes.includes(v) ? "on" : ""}" data-fonte="${esc(v)}">${iconeFonte(v)}${esc(v)}<span class="n">${n}</span></button>`).join("") || `<span class="mut sm">Nenhum site com projetos nesta aba</span>`;
   const tec = contar(base.filter(p => passa(p, "tec")), tecs).slice(0, 24);
   f.tecs.filter(t => !tec.some(([v]) => v === t)).forEach(t => tec.push([t, 0]));
-  $("fTec").innerHTML = tec.map(([v, n]) =>
-    `<button class="chip ${f.tecs.includes(v) ? "on" : ""}" data-tec="${esc(v)}">${esc(v)}<span class="n">${n}</span></button>`).join("")
-    || `<span class="meta">Nenhuma detectada</span>`;
-  document.querySelectorAll(".segm").forEach(s => s.querySelectorAll("button").forEach(b =>
-    b.classList.toggle("on", Number(b.dataset.v) === Number(f[s.dataset.f]))));
-  $("fValor").value = f.valor; $("fComValor").checked = f.comValor;
-  $("busca").value = f.busca; $("ordem").value = f.ordem;
-  $("abas").innerHTML = ABAS.map(([v, r]) => `<button class="aba ${f.aba === v ? "on" : ""}" data-aba="${v}">${r}<span class="n">${
-    dados.filter(p => naAba(p, v) && passa(p)).length}</span></button>`).join("");
+  $("fTec").innerHTML = tec.map(([v, n]) => `<button class="chip ${f.tecs.includes(v) ? "on" : ""}" data-tec="${esc(v)}">${esc(v)}<span class="n">${n}</span></button>`).join("") || `<span class="mut sm">Nenhuma detectada</span>`;
+  document.querySelectorAll("#filtros [data-f]").forEach(s => s.querySelectorAll("button").forEach(b => b.classList.toggle("on", Number(b.dataset.v) === Number(f[s.dataset.f]))));
+  $("fValor").value = f.valor; $("fComValor").checked = f.comValor; $("busca").value = f.busca; $("ordem").value = f.ordem;
+  const n = (f.fontes.length ? 1 : 0) + (f.dias ? 1 : 0) + (f.valor ? 1 : 0) + (f.comValor ? 1 : 0) + (f.horas ? 1 : 0) + (f.propostas ? 1 : 0) + (f.tecs.length ? 1 : 0);
+  $("cntFiltros").hidden = !n; $("cntFiltros").textContent = n;
+  $("abas").innerHTML = ABAS.map(([v, r]) => `<button class="tab ${f.aba === v ? "on" : ""}" data-aba="${v}">${r}<span class="n">${dados.filter(p => naAba(p, v) && passa(p)).length}</span></button>`).join("");
+  const nb = dados.filter(p => naAba(p, "CHANCE")).length;
+  $("nbChance").hidden = !nb; $("nbChance").textContent = nb;
 }
 
-function desenharLista() {
-  let l = dados.filter(p => naAba(p, f.aba) && passa(p));
-  const ord = {
-    valor: (a, b) => (reais(b) ?? -1) - (reais(a) ?? -1),
-    valorhora: (a, b) => ((reais(b) ?? -1) / b.horas_max) - ((reais(a) ?? -1) / a.horas_max),
-    horas: (a, b) => a.horas_max - b.horas_max,
-    propostas: (a, b) => (a.propostas ?? 999) - (b.propostas ?? 999),
-    chance: (a, b) => chance(b).nota - chance(a).nota,
-    data: (a, b) => idadeH(a) - idadeH(b),
-  }[f.ordem];
-  l.sort(ord);
-  $("contagem").textContent = `${l.length} projeto(s)`;
-  desenharCota();
-  $("lista").innerHTML = l.length ? l.map(cartao).join("") : `<div class="vazio">Nenhum projeto com esses filtros.<br><button onclick="limpar()" style="margin-top:10px">Limpar filtros</button></div>`;
+function desenharCota() {
+  const l = sites.filter(s => s.ativa && s.auto && s.unidade);
+  $("cota").innerHTML = l.length ? `<span class="mut3">Candidaturas grátis restantes</span>` + l.map(s => {
+    const per = s.periodo === "semana" ? "por semana" : "por mês";
+    if (s.limite == null) return `<span class="it">${iconeFonte(s.nome)}${esc(s.nome)}: <a href="#/sites">definir cota</a></span>`;
+    const rest = Math.max(0, s.limite - s.usadas), out = rest === 0;
+    return `<span class="it" title="${esc(s.politica)}">${iconeFonte(s.nome)}${esc(s.nome)}: <b>${rest}</b> de ${s.limite} ${esc(s.unidade)} · ${per}
+      <span class="mini-bar ${out ? "out" : ""}"><i style="width:${s.limite ? rest / s.limite * 100 : 0}%"></i></span></span>`;
+  }).join("") : "";
 }
 
 function cartao(p) {
-  const [v1, v2] = valor(p), [t1, t2] = tempo(p);
-  const aberto = abertos.has(p.id);
-  const rh = reais(p) != null ? `R$ ${Math.round(reais(p) / p.horas_max)}/h no máx.` : "";
-  return `
-  <div class="cartao ${p.status}${visitados.has(p.id) ? " visto" : ""}">
+  const c = chance(p), [v1, v2] = valor(p), [t1, t2] = tempo(p), aberto = abertos.has(p.id);
+  const cls = c.nota >= 70 ? "alta" : c.nota >= 55 ? "media" : "baixa";
+  const rh = reais(p) != null && p.horas_max ? ` · R$ ${Math.round(reais(p) / p.horas_max)}/h` : "";
+  const meta = [p.categoria, p.nivel, quando(p)].filter(Boolean);
+  return `<article class="proj ${p.status}${visitados.has(p.id) ? " visto" : ""}">
+    <div class="score ${cls}" title="${esc(c.motivos.join(" · ") || "sem destaques")}"><b>${c.nota}</b><small>chance</small></div>
     <div>
-      <a class="titulo" href="${esc(p.link || "#")}" target="_blank" rel="noopener" onclick="visitar(${p.id})">${esc(p.titulo)}</a>
-      <div class="meta">${notaHtml(p)}<span class="fonte">${iconeFonte(p.fonte)}${esc(p.fonte)}</span>${[p.categoria, p.nivel, quando(p)].filter(Boolean).map(x => `<span>${esc(x)}</span>`).join("")}</div>
-      <ul>${p.resumo.slice(0, aberto ? 99 : 3).map(r => `<li>${esc(r)}</li>`).join("")}</ul>
+      <div class="topo">
+        <a class="titulo" href="${esc(p.link || "#")}" target="_blank" rel="noopener" onclick="visitar(${p.id})">${esc(p.titulo)}</a>
+        <div class="acoes">${ACOES.map(([s, i, r]) => `<button class="ib ${i} ${p.status === s ? "on" : ""}" title="${r}" aria-label="${r}" onclick="marcar(${p.id}, '${s}')">${ic(i)}</button>`).join("")}
+          ${p.status !== "NOVO" ? `<button class="ib" title="Voltar para novos" aria-label="Voltar" onclick="marcar(${p.id}, 'NOVO')">${ic("undo")}</button>` : ""}</div>
+      </div>
+      <div class="meta"><span class="fonte">${iconeFonte(p.fonte)}${esc(p.fonte)}</span>${meta.map(x => `<span>${esc(x)}</span>`).join("")}
+        ${bloqueado(p) ? `<span class="lock" title="O plano grátis só deixa propor ${espera(p)} h depois do anúncio">${ic("lock")}libera em ${fmtH(liberaEm(p))}</span>` : ""}</div>
+      ${c.motivos.length ? `<div class="porque">${esc(c.motivos.slice(0, 3).join(" · "))}</div>` : ""}
+      <ul class="res">${p.resumo.slice(0, 2).map(r => `<li>${esc(r)}</li>`).join("")}</ul>
       ${aberto ? `<div class="completo">${esc(p.descricao)}</div>` : ""}
-      <button class="mais" onclick="alternar(${p.id})">${aberto ? "▲ menos" : "▼ ver descrição completa"}</button>
-      ${tecs(p).length ? `<div class="tags">${tecs(p).map(t => `<span class="chip ${f.tecs.includes(t) ? "on" : ""}" data-tec="${esc(t)}">${esc(t)}</span>`).join("")}</div>` : ""}
+      ${tecs(p).length ? `<div class="tags">${tecs(p).slice(0, 8).map(t => `<button class="chip ${f.tecs.includes(t) ? "on" : ""}" data-tec="${esc(t)}">${esc(t)}</button>`).join("")}</div>` : ""}
+      <div class="stats">
+        <div class="stat"><span>Valor</span><b>${esc(v1)}</b>${v2 ? `<small>${esc(v2)}</small>` : ""}</div>
+        <div class="stat"><span>Tempo estimado</span><b>${t1}</b><small>${t2}${rh}</small></div>
+        ${p.propostas != null ? `<div class="stat"><span>Propostas</span><b class="${p.propostas > 30 ? "alto" : ""}">${p.propostas}</b></div>` : ""}
+        <button class="btn ghost sm grow" onclick="alternar(${p.id})">${aberto ? "Ocultar descrição" : "Ver descrição"}</button>
+      </div>
     </div>
-    <div class="lado">
-      <div class="num"><span>Valor</span><b>${esc(v1)}</b>${v2 ? `<small>${esc(v2)}</small>` : ""}</div>
-      <div class="num"><span>Tempo estimado</span><b>${t1}</b><small>${t2}${rh ? " · " + rh : ""}</small></div>
-      ${p.propostas != null ? `<div class="num"><span>Propostas</span><b class="${p.propostas > 30 ? "alto" : ""}">${p.propostas}</b></div>` : ""}
-      <div class="acoes">${ACOES.filter(([s]) => s !== "NOVO" || p.status !== "NOVO").map(([s, r]) =>
-        `<button class="${p.status === s ? "on" : ""}" onclick="marcar(${p.id}, '${s}')">${r}</button>`).join("")}</div>
-    </div>
-  </div>`;
+  </article>`;
+}
+
+function desenharLista() {
+  const l = dados.filter(p => naAba(p, f.aba) && passa(p));
+  const ord = {
+    valor: (a, b) => (reais(b) ?? -1) - (reais(a) ?? -1),
+    valorhora: (a, b) => ((reais(b) ?? -1) / b.horas_max) - ((reais(a) ?? -1) / a.horas_max),
+    horas: (a, b) => a.horas_max - b.horas_max, propostas: (a, b) => (a.propostas ?? 999) - (b.propostas ?? 999),
+    chance: (a, b) => chance(b).nota - chance(a).nota, data: (a, b) => idadeH(a) - idadeH(b),
+  }[f.ordem];
+  l.sort(ord);
+  $("subProj").textContent = `${l.length} projeto${l.length === 1 ? "" : "s"} nesta visão · ${dados.length} no total`;
+  desenharCota();
+  $("lista").innerHTML = l.length ? l.slice(0, 120).map(cartao).join("") +
+      (l.length > 120 ? `<div class="vazio mut sm">Mostrando 120 de ${l.length}. Use os filtros para refinar.</div>` : "")
+    : `<div class="vazio"><div>Nenhum projeto nesta visão.</div><button class="btn" onclick="limpar()">Limpar filtros</button></div>`;
 }
 
 function tudo() { salvar(); desenharFiltros(); desenharLista(); }
 function limpar() { f = {...PADRAO, aba: f.aba, ordem: f.ordem}; tudo(); }
 function alternar(id) { abertos.has(id) ? abertos.delete(id) : abertos.add(id); desenharLista(); }
-
-async function carregar() {
-  const r = await fetch("/api/projetos").then(r => r.json());
-  dados = r.projetos;
-  avisarNovos();
-  const e = r.estado;
-  $("estado").textContent = `${e.rodando ? "⏳ " : ""}${e.mensagem}${e.ultima ? " · última busca " + e.ultima : ""} · busca sozinho a cada 30 min · tempo estimado é aproximado (sem IA)`;
-  $("btnColetar").disabled = e.rodando;
-  $("btnColetar").textContent = e.rodando ? "Buscando…" : "Buscar agora";
-  desenharFiltros(); desenharLista();
-}
-async function post(url, corpo) {
-  const r = await fetch(url, {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(corpo || {})});
-  return {ok: r.ok, ...(await r.json())};
-}
 async function marcar(id, status) {
   await post(`/api/status/${id}`, {status});
   dados.find(p => p.id === id).status = status;
@@ -435,11 +518,47 @@ async function marcar(id, status) {
   tudo();
 }
 
-// eventos
+async function carregar() {
+  const r = await get("/api/projetos");
+  dados = r.projetos;
+  avisarNovos();
+  const e = r.estado;
+  $("dot").className = "dot" + (e.rodando ? " busy" : "");
+  $("estadoTxt").textContent = e.rodando ? "Buscando…" : (e.ultima ? `Última busca: ${e.ultima}` : "Aguardando 1ª busca");
+  $("estadoDet").innerHTML = (e.mensagem || "").split(" · ").map(x => `<div>${esc(x)}</div>`).join("") + `<div class="mut3">Busca automática a cada 10 min</div>`;
+  $("btnColetar").disabled = e.rodando;
+  $("btnColetar").querySelector("span").textContent = e.rodando ? "Buscando…" : "Buscar agora";
+  desenharFiltros(); desenharLista();
+}
+
+/* ---------- avisos ---------- */
+function avisarNovos() {
+  const bons = dados.filter(p => p.status === "NOVO" && chance(p).nota >= 70 && !bloqueado(p) && (p.propostas ?? 0) <= 8 && idadeH(p) - espera(p) < 3);
+  const primeira = notificados.size === 0 && !localStorage.getItem("bicos_notif_ok");
+  const novos = bons.filter(p => !notificados.has(p.id));
+  bons.forEach(p => notificados.add(p.id)); gravarSet("bicos_notificados", notificados);
+  try { localStorage.setItem("bicos_notif_ok", "1"); } catch {}
+  document.title = novos.length && !primeira ? `(${novos.length}) Bicos` : "Bicos";
+  if (primeira || !novos.length) return;
+  if ("Notification" in window && Notification.permission === "granted")
+    novos.slice(0, 3).forEach(p => new Notification(`Chance ${chance(p).nota} · ${p.fonte}`, {body: p.titulo}));
+}
+function estadoAvisos() {
+  const ok = "Notification" in window && Notification.permission === "granted";
+  $("btnAvisos").querySelector("span").textContent = ok ? "Avisos ligados" : "Ligar avisos";
+}
+$("btnAvisos").onclick = async () => {
+  if (!("Notification" in window)) return alert("Este navegador não suporta notificações.");
+  await Notification.requestPermission(); estadoAvisos();
+  if (Notification.permission === "granted") new Notification("Avisos ligados", {body: "Aviso quando surgir projeto com nota alta e poucas propostas (com o painel aberto)."});
+};
+
+/* ---------- eventos dos projetos ---------- */
 $("abas").onclick = (e) => { const b = e.target.closest("[data-aba]"); if (b) { f.aba = b.dataset.aba; tudo(); } };
-document.querySelectorAll(".segm").forEach(s => s.onclick = (e) => {
-  const b = e.target.closest("button"); if (b) { f[s.dataset.f] = Number(b.dataset.v); tudo(); } });
-$("fFonte").onchange = () => { f.fontes = [...$("fFonte").querySelectorAll("input:checked")].map(i => i.value); tudo(); };
+$("filtros").addEventListener("click", (e) => {
+  const seg = e.target.closest("[data-f] button"); if (seg) { f[seg.parentElement.dataset.f] = Number(seg.dataset.v); return tudo(); }
+  const fo = e.target.closest("[data-fonte]"); if (fo) { const v = fo.dataset.fonte; f.fontes = f.fontes.includes(v) ? f.fontes.filter(x => x !== v) : [...f.fontes, v]; tudo(); }
+});
 document.body.addEventListener("click", (e) => {
   const c = e.target.closest("[data-tec]"); if (!c) return;
   const t = c.dataset.tec; f.tecs = f.tecs.includes(t) ? f.tecs.filter(x => x !== t) : [...f.tecs, t]; tudo();
@@ -450,8 +569,10 @@ $("fValor").oninput = () => { f.valor = $("fValor").value; tudo(); };
 $("fComValor").onchange = () => { f.comValor = $("fComValor").checked; tudo(); };
 $("ordem").onchange = () => { f.ordem = $("ordem").value; tudo(); };
 $("btnLimpar").onclick = limpar;
-$("btnFiltros").onclick = () => $("filtros").classList.toggle("aberto");
-$("btnColetar").onclick = async () => { await post("/api/coletar"); carregar(); };
+$("btnFiltros").onclick = () => { $("filtros").hidden = !$("filtros").hidden; };
+$("btnColetar").onclick = async () => { await post("/api/coletar"); setTimeout(carregar, 600); };
+$("btnAdd").onclick = () => { $("msgAdd").textContent = ""; $("dlgAdd").showModal(); };
+$("btnFecharAdd").onclick = () => $("dlgAdd").close();
 $("btnLink").onclick = async () => {
   $("msgAdd").textContent = "Lendo…";
   const r = await post("/api/link", {url: $("url").value});
@@ -461,108 +582,12 @@ $("btnLink").onclick = async () => {
 };
 $("btnTexto").onclick = async () => {
   if (!$("tTexto").value.trim()) return;
-  const r = await post("/api/texto", {titulo: $("tTitulo").value, texto: $("tTexto").value,
-                                      link: $("url").value, orcamento: $("tOrc").value});
+  const r = await post("/api/texto", {titulo: $("tTitulo").value, texto: $("tTexto").value, link: $("url").value, orcamento: $("tOrc").value});
   $("msgAdd").textContent = r.mensagem;
   if (r.ok) { ["tTitulo","tTexto","tOrc","url"].forEach(i => $(i).value = ""); carregar(); }
 };
-/* ---------- chance de valer a pena + cota + avisos ---------- */
-const MEU_STACK = ["Python","Django","Flask","FastAPI","Node","JavaScript","TypeScript","React","Angular","Next.js","SQL","MySQL",
-  "PostgreSQL","Selenium","Playwright","Scraping","API","Bot","Telegram","WhatsApp","HTML","CSS","Excel","VBA"];
-const ARMADILHA = /sem remunera|n[aã]o remunerad|permuta|comiss[aã]o|commission|unpaid|teste gr[aá]tis|free trial|gratuit|sociedade|em troca de|exposi[cç][aã]o|volunt[aá]ri/i;
-const SUA_AREA = /python|node|react|angular|javascript|typescript|\bsql\b|\bapi\b|\bbot\b|automa|scrap|\bsite\b|website|\bweb\b|sistema|\bapp\b|software|program|desenvolv|develop|backend|frontend|full.?stack|excel|vba|planilha|dashboard|suporte|support|atendimento|chatbot|integra/i;
-const lerSet = (k) => { try { return new Set(JSON.parse(localStorage.getItem(k) || "[]")); } catch { return new Set(); } };
-const gravarSet = (k, s) => { try { localStorage.setItem(k, JSON.stringify([...s].slice(-2000))); } catch {} };
-const visitados = lerSet("bicos_visitados"), notificados = lerSet("bicos_notificados");
-function visitar(id) { visitados.add(id); gravarSet("bicos_visitados", visitados); }
 
-// plano grátis de alguns sites só deixa propor depois de X h do anúncio (ex.: 99Freelas = 24 h)
-const siteDe = (p) => (typeof sites !== "undefined" ? sites : []).find(x => x.nome === p.fonte);
-const espera = (p) => (siteDe(p) || {}).espera || 0;
-const liberaEm = (p) => Math.max(0, espera(p) - idadeH(p));
-const bloqueado = (p) => espera(p) > 0 && idadeH(p) < espera(p);
-const fmtH = (h) => h < 1 ? Math.max(1, Math.round(h * 60)) + " min" : Math.round(h) + " h";
-function chance(p) {
-  const m = []; let n = 0;
-  if (ARMADILHA.test(`${p.titulo} ${(p.descricao || "").slice(0, 400)}`)) {
-    return p._c = {nota: 0, motivos: ["possível armadilha (sem pagamento/permuta/comissão)"], t: dados.length + ":" + (typeof sites !== "undefined" ? sites.length : 0)};
-  }
-  const pr = p.propostas;
-  if (pr == null) n += 15;
-  else if (pr <= 3) { n += 35; m.push("quase sem concorrência"); }
-  else if (pr <= 10) { n += 30; m.push("poucas propostas"); }
-  else if (pr <= 20) n += 20;
-  else if (pr <= 40) n += 8; else m.push("muito concorrido");
-  const h = Math.max(0, idadeH(p) - espera(p));   // plano grátis: conta a partir da liberação
-  if (h < 1) { n += 25; m.push("publicado há menos de 1 h"); } else if (h < 3) { n += 22; m.push("publicado há poucas horas"); }
-  else if (h < 6) n += 18; else if (h < 24) n += 12; else if (h < 72) n += 5; else m.push("antigo");
-  const r = reais(p);
-  if (r != null && p.horas_max) {
-    const rh = r / p.horas_max;
-    if (rh >= 60) { n += 20; m.push("paga bem pelo tempo"); } else if (rh >= 40) n += 15; else if (rh >= 25) n += 10; else { n += 4; m.push("paga pouco pelo tempo"); }
-  } else n += 6;
-  const casam = tecs(p).filter(t => MEU_STACK.includes(t)).length;
-  if (casam >= 2) { n += 15; m.push("bate com seu stack"); } else if (casam === 1) n += 9; else if (!tecs(p).length) n += 4;
-  if (!casam && !SUA_AREA.test(`${p.titulo} ${(p.descricao || "").slice(0, 300)}`)) { n = Math.min(n, 40); m.push("fora da sua área"); }
-  const s = (typeof sites !== "undefined" ? sites : []).find(x => x.nome === p.fonte);
-  if (s && s.limite != null && s.usadas >= s.limite) { n = Math.min(n, 30); m.push("cota grátis do mês esgotada"); }
-  return p._c = {nota: Math.min(100, Math.round(n)), motivos: m, t: dados.length + ":" + (typeof sites !== "undefined" ? sites.length : 0)};
-}
-function notaHtml(p) {
-  const c = chance(p);
-  return (bloqueado(p) ? `<span class="nota baixa" title="Plano grátis só deixa propor ${espera(p)} h depois do anúncio">🔒 libera em ${fmtH(liberaEm(p))}</span>` : "") +
-    `<span class="nota ${c.nota >= 70 ? "alta" : c.nota < 40 ? "baixa" : ""}" title="${esc(c.motivos.join(" · ") || "sem destaques")}">🎯 ${c.nota}</span>`;
-}
-function desenharCota() {
-  const l = (typeof sites !== "undefined" ? sites : []).filter(s => s.ativa && s.auto);
-  $("cota").innerHTML = l.map(s => {
-    const acabou = s.limite != null && s.usadas >= s.limite;
-    return `<span class="pilula ${acabou ? "acabou" : ""}" title="${esc(s.politica)}">${iconeFonte(s.nome)} ${esc(s.nome)}: ` +
-      (s.limite != null ? `<b>${Math.max(0, s.limite - s.usadas)}</b> de ${s.limite} ${esc(s.unidade)}/${s.periodo === "semana" ? "semana" : "mês"} restantes` : `${s.usadas} usadas · defina a cota em Sites`) + `</span>`;
-  }).join("") + `<span class="rot">cota grátis · gaste nos de maior 🎯</span>`;
-}
-function avisarNovos() {
-  const bons = dados.filter(p => p.status === "NOVO" && chance(p).nota >= 70 && !bloqueado(p) && (p.propostas ?? 0) <= 8 && idadeH(p) - espera(p) < 3);
-  const primeira = notificados.size === 0 && !localStorage.getItem("bicos_notif_ok");
-  const novos = bons.filter(p => !notificados.has(p.id));
-  bons.forEach(p => notificados.add(p.id)); gravarSet("bicos_notificados", notificados);
-  try { localStorage.setItem("bicos_notif_ok", "1"); } catch {}
-  document.title = novos.length && !primeira ? `(${novos.length}) Bicos` : "Bicos";
-  if (primeira || !novos.length) return;
-  if ("Notification" in window && Notification.permission === "granted")
-    novos.slice(0, 3).forEach(p => new Notification(`🎯 ${chance(p).nota} · ${p.fonte}`, {body: p.titulo}));
-}
-function estadoAvisos() {
-  const ok = "Notification" in window && Notification.permission === "granted";
-  $("btnAvisos").textContent = ok ? "🔔 Avisos ligados" : "🔔 Ligar avisos";
-}
-$("btnAvisos").onclick = async () => {
-  if (!("Notification" in window)) return alert("Este navegador não suporta notificações.");
-  await Notification.requestPermission(); estadoAvisos();
-  if (Notification.permission === "granted") new Notification("Avisos ligados", {body: "Aviso quando surgir projeto com nota alta e poucas propostas (com o painel aberto)."});
-};
-estadoAvisos();
-
-/* ---------- telas: projetos / metas / sites ---------- */
-const brl = (n) => (n || 0).toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
-const hoje = () => new Date().toISOString().slice(0, 10);
-const ico = (d) => `https://www.google.com/s2/favicons?domain=${d}&sz=64`;
-const get = (url) => fetch(url).then(r => r.json());
-let sites = [], mes = hoje().slice(0, 7), view = "Projetos";
-
-function mostrar(v) {
-  view = v;
-  $("vProjetos").hidden = v !== "Projetos"; $("vMetas").hidden = v !== "Metas"; $("vSites").hidden = v !== "Sites"; $("vPoliticas").hidden = v !== "Politicas";
-  ["abas", "estado", "busca", "btnFiltros"].forEach(i => $(i).hidden = v !== "Projetos");
-  document.querySelectorAll("#views button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
-  try { localStorage.setItem("bicos_view", v); } catch {}
-  if (v === "Metas") carregarGanhos();
-  if (v === "Sites") { carregarSites(); desenharRedes(); }
-  if (v === "Politicas") carregarPoliticas();
-}
-$("views").onclick = (e) => { const b = e.target.closest("[data-view]"); if (b) mostrar(b.dataset.view); };
-
-// metas & ganhos
+/* ---------- metas e ganhos ---------- */
 function moverMes(d) { const [y, m] = mes.split("-").map(Number); const x = new Date(y, m - 1 + d, 1);
   mes = x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0"); carregarGanhos(); }
 $("mPrev").onclick = () => moverMes(-1); $("mNext").onclick = () => moverMes(1);
@@ -571,21 +596,24 @@ async function carregarGanhos() {
   const d = await get("/api/ganhos?mes=" + mes);
   $("mMes").value = mes; $("mMeta").value = d.meta || "";
   $("mTotal").textContent = brl(d.total);
+  $("mMetaV").textContent = d.meta ? brl(d.meta) : "Defina abaixo";
   const falta = Math.max(0, d.meta - d.total);
-  $("mFalta").textContent = d.meta ? brl(falta) : "defina a meta";
+  $("mFalta").textContent = d.meta ? brl(falta) : "—";
   const h = new Date(), [y, m] = mes.split("-").map(Number), fim = new Date(y, m, 0).getDate();
   const dias = h.getFullYear() === y && h.getMonth() + 1 === m ? fim - h.getDate() + 1 : 0;
-  $("mDia").textContent = d.meta && !falta ? "meta batida 🎉" : d.meta && dias ? brl(falta / dias) : "—";
+  $("mDia").textContent = d.meta && !falta ? "Meta batida" : d.meta && dias ? brl(falta / dias) : "—";
+  document.querySelector("#pg-metas .kpi:nth-child(3)").classList.toggle("ok", !!d.meta && !falta);
   const p = d.meta ? Math.min(100, d.total / d.meta * 100) : 0;
   $("mBar").style.width = p + "%"; $("mBar").className = p >= 100 ? "ok" : "";
   $("mPct").textContent = d.meta ? `${p.toFixed(0)}% de ${brl(d.meta)}` : "sem meta definida";
   $("gTab").innerHTML = "<tr><th>Data</th><th>Valor</th><th>Onde</th><th>O quê</th><th></th></tr>" + (d.itens.map(i =>
-    `<tr><td>${i.data.split("-").reverse().join("/")}</td><td>${brl(i.valor)}</td><td>${esc(i.plataforma)}</td><td>${esc(i.descricao)}</td>
-     <td><button data-del="${i.id}">✕</button></td></tr>`).join("") || `<tr><td colspan="5" class="rot">Nenhum ganho registrado neste mês.</td></tr>`);
+    `<tr><td>${i.data.split("-").reverse().join("/")}</td><td><b>${brl(i.valor)}</b></td><td>${esc(i.plataforma)}</td><td>${esc(i.descricao)}</td>
+     <td style="text-align:right"><button class="ib" data-del="${i.id}" title="Apagar" aria-label="Apagar">${ic("trash")}</button></td></tr>`).join("")
+    || `<tr><td colspan="5" class="mut">Nenhum ganho registrado neste mês.</td></tr>`);
   const max = Math.max(1, ...d.historico.map(x => Math.max(x.total, x.meta)));
   $("mHist").innerHTML = d.historico.map(x => `<div title="meta ${brl(x.meta)}"><span>${brl(x.total)}</span>
     <b class="${x.meta && x.total >= x.meta ? "ok" : ""}" style="height:${x.total / max * 100}px"></b>${x.mes.slice(5)}/${x.mes.slice(2, 4)}</div>`).join("")
-    || `<span class="rot">Sem histórico ainda.</span>`;
+    || `<span class="mut sm">Sem histórico ainda.</span>`;
   if (!sites.length) sites = await get("/api/sites");
   $("plats").innerHTML = [...new Set([...sites.map(s => s.nome), ...d.itens.map(i => i.plataforma)])].map(x => `<option value="${esc(x)}">`).join("");
 }
@@ -600,19 +628,27 @@ $("gTab").onclick = async (e) => { const b = e.target.closest("[data-del]");
   if (b && confirm("Apagar esse ganho?")) { await post("/api/ganhos/apagar", {id: Number(b.dataset.del)}); carregarGanhos(); } };
 $("gData").value = hoje();
 
-// sites & cadastros
+/* ---------- sites: cadastros e busca ---------- */
+const termoBusca = () => encodeURIComponent(f.busca || "python");
 async function carregarSites() {
+  const abertos = new Set([...document.querySelectorAll("#sLista details[open]")].map(d => d.dataset.n));
   sites = await get("/api/sites");
-  $("sLista").innerHTML = sites.map(s => `<div class="cx site ${s.ativa ? "" : "off"}">
-    <img src="${ico(s.dominio)}" alt="">
-    <div class="nome"><b>${esc(s.nome)}</b> <span class="pilula ${s.auto ? "auto" : ""}">${s.auto ? "busca automática" : "↗ busca manual"}</span>
-      <div class="rot">${esc(s.obs)}</div><div class="rot pol">📋 ${esc(s.politica)}</div><div class="rot pol">💳 ${esc(s.planos)}</div><div class="rot pol">🔎 Confiança: <b>${esc(s.confianca)}</b>${s.oficial ? ` · <a href="${esc(s.oficial)}" target="_blank" rel="noopener">fonte</a>` : ""}${s.oficial2 ? ` · <a href="${esc(s.oficial2)}" target="_blank" rel="noopener">fonte 2</a>` : ""} (confira na sua conta: as regras mudam)</div>${s.auto ? `<div class="rot">Espera do plano grátis: <input type="number" min="0" style="width:60px" data-espera="${esc(s.nome)}" value="${s.espera ?? 0}"> h após o anúncio pra poder propor (0 = sem espera)</div>` : ""}${s.unidade && s.auto ? `<div class="rot">Cota grátis por ${s.periodo === "semana" ? "semana" : "mês"}:
-        <input type="number" min="0" style="width:70px" data-limite="${esc(s.nome)}" value="${s.limite ?? ""}" placeholder="?"> ${esc(s.unidade)}
-        · usadas ${s.periodo === "semana" ? "esta semana" : "este mês"}: <b>${s.usadas}</b> (conta quando você marca ✉ Candidatei)</div>` : ""}</div>
-    <label class="chave"><input type="checkbox" data-ativa="${esc(s.nome)}" ${s.ativa ? "checked" : ""}> ${s.auto ? "buscar" : "incluir"}</label>
-    <a href="${esc(s.busca.replace("{q}", "python"))}" target="_blank" rel="noopener" data-busca="${esc(s.nome)}"><button>Ver vagas ↗</button></a>
-    <a href="${esc(s.cadastro)}" target="_blank" rel="noopener"><button class="prim">Cadastro</button></a>
-    <label class="chave"><input type="checkbox" data-cad="${esc(s.nome)}" ${s.cadastrado ? "checked" : ""}> cadastrei</label></div>`).join("");
+  $("sLista").innerHTML = sites.map(s => `<div class="card srow" style="margin-bottom:10px">
+    <img class="lg" src="${ico(s.dominio)}" alt="">
+    <div class="info"><b>${esc(s.nome)}</b><span class="tag ${s.auto ? "auto" : ""}">${s.auto ? "busca automática" : "busca manual"}</span>
+      <div class="mut sm">${esc(s.obs)}</div></div>
+    <label class="chk"><input type="checkbox" data-ativa="${esc(s.nome)}" ${s.ativa ? "checked" : ""}> ${s.auto ? "Buscar" : "Incluir"}</label>
+    <a class="btn sm" href="${esc(s.busca.replace("{q}", termoBusca()))}" target="_blank" rel="noopener" data-busca="${esc(s.nome)}">${ic("ext")}Ver projetos</a>
+    <a class="btn sm pri" href="${esc(s.cadastro)}" target="_blank" rel="noopener">Cadastro</a>
+    <label class="chk"><input type="checkbox" data-cad="${esc(s.nome)}" ${s.cadastrado ? "checked" : ""}> Cadastrei</label>
+    <details data-n="${esc(s.nome)}" ${abertos.has(s.nome) ? "open" : ""}><summary>Regras do plano grátis e configurações</summary>
+      <div class="det-grid">
+        <div><h5>Plano grátis</h5>${esc(s.politica)}</div>
+        <div><h5>Planos pagos e taxas</h5>${esc(s.planos)}</div>
+        <div><h5>Confiança da informação</h5>${esc(s.confianca)}${s.oficial ? ` · <a href="${esc(s.oficial)}" target="_blank" rel="noopener">fonte</a>` : ""}${s.oficial2 ? ` · <a href="${esc(s.oficial2)}" target="_blank" rel="noopener">fonte 2</a>` : ""}<div class="mut3">As regras mudam: confira na sua conta.</div></div>
+        ${s.auto ? `<div><h5>Espera do plano grátis</h5><input type="number" min="0" data-espera="${esc(s.nome)}" value="${s.espera ?? 0}"> h após o anúncio (0 = sem espera)</div>` : ""}
+        ${s.unidade && s.auto ? `<div><h5>Cota grátis por ${s.periodo === "semana" ? "semana" : "mês"}</h5><input type="number" min="0" data-limite="${esc(s.nome)}" value="${s.limite ?? ""}" placeholder="?"> ${esc(s.unidade)} · usadas: <b>${s.usadas}</b><div class="mut3">Conta quando você marca "Candidatei".</div></div>` : ""}
+      </div></details></div>`).join("");
 }
 $("sLista").onchange = async (e) => {
   const a = e.target.dataset.ativa, c = e.target.dataset.cad, l = e.target.dataset.limite, w = e.target.dataset.espera;
@@ -622,17 +658,10 @@ $("sLista").onchange = async (e) => {
   if (c) await post("/api/sites/cadastrado", {nome: c, feito: e.target.checked ? 1 : 0});
   carregarSites();
 };
-$("sLista").addEventListener("click", (e) => {      // "Ver vagas" usa o texto da busca
-  const a = e.target.closest("[data-busca]"); if (!a) return;
-  const s = sites.find(x => x.nome === a.dataset.busca);
-  a.href = s.busca.replace("{q}", encodeURIComponent(f.busca || "python"));
-});
 $("sAbrirCadastros").onclick = () => sites.filter(s => !s.cadastrado).forEach(s => window.open(s.cadastro, "_blank"));
-$("sAbrirBuscas").onclick = () => sites.filter(s => s.ativa && !s.auto).forEach(s =>
-  window.open(s.busca.replace("{q}", encodeURIComponent(f.busca || "python")), "_blank"));
+$("sAbrirBuscas").onclick = () => sites.filter(s => s.ativa && !s.auto).forEach(s => window.open(s.busca.replace("{q}", termoBusca()), "_blank"));
 
-/* ---------- políticas ---------- */
-const SEMAFORO = {verde: ["🟢", "Grátis basta"], amarelo: ["🟡", "Pagar pode compensar"], vermelho: ["🔴", "Só com orçamento"]};
+/* ---------- sites: políticas e planos ---------- */
 async function carregarPoliticas() {
   sites = await get("/api/sites");
   if (!$("pFat").value) { const g = await get("/api/ganhos?mes=" + hoje().slice(0, 7)); $("pFat").value = g.meta || 1000; }
@@ -641,12 +670,11 @@ async function carregarPoliticas() {
 function desenharPoliticas() {
   const maisBarato = (s) => (s.planos_pagos || []).filter(p => p.preco_brl != null).sort((a, b) => a.preco_brl - b.preco_brl)[0];
   $("pTab").innerHTML = `<tr><th>Site</th><th>Plano grátis</th><th>Espera</th><th>Taxa grátis</th><th>Plano pago mais barato</th><th>Vale investir?</th></tr>` +
-    sites.map(s => { const [ic, tx] = SEMAFORO[s.semaforo] || ["", ""]; const p = maisBarato(s);
-      return `<tr><td><span style="white-space:nowrap">${iconeFonte(s.nome) || `<img class="fav" src="${ico(s.dominio)}" alt="">`} <b>${esc(s.nome)}</b></span></td>
-        <td>${esc(s.gratis_curto)}</td><td>${s.espera ? s.espera + " h" : "—"}</td>
-        <td>${s.comissao_gratis != null ? s.comissao_gratis + "%" : "—"}</td>
-        <td>${p ? `${esc(p.nome)} ~${brl(p.preco_brl)}/mês${p.comissao != null ? ` · taxa ${p.comissao}%` : ""}<div class="rot">${esc(p.beneficio)}</div>` : "—"}</td>
-        <td class="vered"><span class="sem" title="${tx}">${ic}</span> ${esc(s.veredito)}</td></tr>`; }).join("");
+    sites.map(s => { const p = maisBarato(s);
+      return `<tr><td style="white-space:nowrap"><img class="fav" src="${ico(s.dominio)}" alt=""> <b>${esc(s.nome)}</b></td>
+        <td>${esc(s.gratis_curto)}</td><td>${s.espera ? s.espera + " h" : "—"}</td><td>${s.comissao_gratis != null ? s.comissao_gratis + "%" : "—"}</td>
+        <td>${p ? `${esc(p.nome)} ~${brl(p.preco_brl)}/mês${p.comissao != null ? ` · taxa ${p.comissao}%` : ""}<div class="mut3 sm">${esc(p.beneficio)}</div>` : "—"}</td>
+        <td class="vered"><span class="sem ${esc(s.semaforo)}"></span>${esc(s.veredito)}</td></tr>`; }).join("");
   const fat = Number($("pFat").value) || 0, linhas = [];
   sites.forEach(s => (s.planos_pagos || []).forEach(p => {
     if (p.preco_brl == null || p.comissao == null || s.comissao_gratis == null) return;
@@ -654,14 +682,14 @@ function desenharPoliticas() {
     const economia = fat * dif / 100, saldo = economia - p.preco_brl, eq = p.preco_brl / (dif / 100);
     linhas.push(`<tr><td><b>${esc(s.nome)}</b> ${esc(p.nome)}</td><td>${brl(p.preco_brl)}/mês</td><td>${s.comissao_gratis}% → ${p.comissao}%</td>
       <td>${brl(economia)}</td><td class="saldo ${saldo >= 0 ? "pos" : "neg"}">${saldo >= 0 ? "+" : ""}${brl(saldo)}</td>
-      <td>${brl(eq)}/mês <span class="rot">${esc(p.beneficio)}</span></td></tr>`);
+      <td>${brl(eq)}/mês<div class="mut3 sm">${esc(p.beneficio)}</div></td></tr>`);
   }));
-  $("pCalc").innerHTML = linhas.length ? `<div style="overflow-x:auto"><table><tr><th>Plano</th><th>Custo</th><th>Taxa</th><th>Economia com ${brl(fat)}/mês</th><th>Saldo</th><th>Equilíbrio (faturamento)</th></tr>${linhas.join("")}</table></div>`
-    : `<span class="rot">Sem planos com taxa conhecida.</span>`;
+  $("pCalc").innerHTML = linhas.length ? `<table style="margin-top:8px"><tr><th>Plano</th><th>Custo</th><th>Taxa</th><th>Economia com ${brl(fat)}/mês</th><th>Saldo</th><th>Equilíbrio</th></tr>${linhas.join("")}</table>`
+    : `<div class="mut sm" style="margin-top:8px">Sem planos com taxa conhecida.</div>`;
 }
 $("pFat").oninput = desenharPoliticas;
 
-/* ---------- redes sociais: buscas prontas ---------- */
+/* ---------- sites: redes sociais ---------- */
 const gg = (q) => `https://www.google.com/search?q=${encodeURIComponent(q)}&tbs=qdr:d`;
 const REDES = [
   ["LinkedIn: posts recentes", "linkedin.com", (q) => `https://www.linkedin.com/search/results/content/?keywords=${encodeURIComponent(`(procuro OR preciso) ${q} (freela OR freelancer)`)}&datePosted=%22past-24h%22&sortBy=%22date_posted%22`],
@@ -675,17 +703,43 @@ const REDES = [
 ];
 const termoRede = () => $("rQ").value.trim() || "desenvolvedor";
 function desenharRedes() {
-  $("rLista").innerHTML = REDES.map(([nome, dom], i) => `<div class="site" style="padding:5px 0">
-    <img src="${ico(dom)}" alt=""><div class="nome"><b>${esc(nome)}</b></div>
-    <a href="#" data-rede="${i}" target="_blank" rel="noopener"><button>Abrir busca ↗</button></a></div>`).join("");
+  $("rLista").innerHTML = `<table style="margin-top:10px">` + REDES.map(([nome, dom], i) => `<tr><td style="width:34px"><img class="fav" src="${ico(dom)}" alt=""></td><td><b>${esc(nome)}</b></td>
+    <td style="text-align:right"><a class="btn sm" href="#" data-rede="${i}" target="_blank" rel="noopener">${ic("ext")}Abrir busca</a></td></tr>`).join("") + `</table>`;
 }
 $("rLista").addEventListener("click", (e) => { const a = e.target.closest("[data-rede]"); if (a) a.href = REDES[a.dataset.rede][2](termoRede()); });
 $("rTodas").onclick = () => REDES.forEach(([, , url]) => window.open(url(termoRede()), "_blank"));
 
-let viewSalva = "Projetos"; try { viewSalva = localStorage.getItem("bicos_view") || "Projetos"; } catch {}
-carregar();
-get("/api/sites").then(s => { sites = s; desenharCota(); });
-mostrar(viewSalva);
+/* ---------- navegação por hash: #/projetos  #/metas  #/sites/politicas ---------- */
+function rota() {
+  const [r = "projetos", sub = "cadastros"] = location.hash.replace(/^#\/?/, "").split("/");
+  const pg = ["projetos", "metas", "sites"].includes(r) ? r : "projetos";
+  ["projetos", "metas", "sites"].forEach(x => $("pg-" + x).hidden = x !== pg);
+  document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("on", a.dataset.r === pg));
+  if (pg === "metas") carregarGanhos();
+  if (pg === "sites") {
+    const s = ["cadastros", "politicas", "redes"].includes(sub) ? sub : "cadastros";
+    ["cadastros", "politicas", "redes"].forEach(x => $("sub-" + x).hidden = x !== s);
+    document.querySelectorAll("#segSites button").forEach(b => b.classList.toggle("on", b.dataset.s === s));
+    if (s === "cadastros") carregarSites(); if (s === "politicas") carregarPoliticas(); if (s === "redes") desenharRedes();
+  }
+}
+$("segSites").onclick = (e) => { const b = e.target.closest("[data-s]"); if (b) location.hash = "#/sites/" + b.dataset.s; };
+window.addEventListener("hashchange", rota);
+
+const TEMAS = ["auto", "light", "dark"], NOMES_TEMA = {auto: "automático", light: "claro", dark: "escuro"};
+function aplicarTema(t) {
+  document.documentElement.style.colorScheme = t === "auto" ? "light dark" : t;
+  $("btnTema").textContent = "Tema: " + NOMES_TEMA[t];
+  try { localStorage.setItem("bicos_tema", t); } catch {}
+}
+let temaAtual = "auto"; try { temaAtual = localStorage.getItem("bicos_tema") || "auto"; } catch {}
+if (location.search.includes("tema=")) temaAtual = new URLSearchParams(location.search).get("tema");
+aplicarTema(temaAtual);
+$("btnTema").onclick = () => { temaAtual = TEMAS[(TEMAS.indexOf(temaAtual) + 1) % 3]; aplicarTema(temaAtual); };
+
+estadoAvisos();
+get("/api/sites").then(s => { sites = s; desenharCota(); }).then(carregar);
+rota();
 setInterval(carregar, 60000);
 </script>
 </body>

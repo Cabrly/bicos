@@ -1,3 +1,5 @@
 __pycache__/
 bicos.db
 *.log
+
+_shots/

@@ -106,7 +106,7 @@ class Painel(BaseHTTPRequestHandler):
         return json.loads(self.rfile.read(n) or b"{}")
 
     def do_GET(self):
-        if self.path == "/":
+        if self.path.split("?")[0] in ("/", "/index.html"):
             corpo = Path(__file__).with_name("painel.html").read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", "text/html; charset=utf-8")
